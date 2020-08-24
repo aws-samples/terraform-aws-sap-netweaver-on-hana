@@ -17,7 +17,7 @@
  */
 
 module sap_efs {
-  source  = "../../modules/aws-sap-netweaver-efs"
+  source  = "./modules/aws-sap-netweaver-efs"
   enabled = var.enabled
 
   kms_key_arn = var.kms_key_arn
@@ -36,7 +36,7 @@ module sap_efs {
 
 
 module hana_host {
-  source = "../../modules/aws-sap-hana-host"
+  source = "./modules/aws-sap-hana-host"
 
   # Instance Count depending on the environment
   instance_count = var.hana_is_scale_out ? (var.enable_ha ? 2 * var.hana_scale_out_node_count : var.hana_scale_out_node_count) : (var.enable_ha ? 2 : 1)
@@ -77,7 +77,7 @@ module hana_host {
 }
 
 module sap_ascs_host {
-  source  = "../../modules/aws-sap-ascs-host"
+  source  = "./modules/aws-sap-ascs-host"
   enabled = var.enabled
 
   # Instance Count depending on the environment
@@ -111,7 +111,7 @@ module sap_ascs_host {
 
 
 module sap_app_host {
-  source  = "../../modules/aws-sap-app-host"
+  source  = "./modules/aws-sap-app-host"
   enabled = var.enabled
 
   # Instance Count depending on the environment
