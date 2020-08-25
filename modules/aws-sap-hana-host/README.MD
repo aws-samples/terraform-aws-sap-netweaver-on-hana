@@ -177,13 +177,5 @@ module hana_host {
 |**application_name**|The name of the application being provisioned, ex. 'datamart', 'ecc', 's4hana', etc.|string| |Yes|
 
 
-## Tests
-
-
-## Authors
-
-Module is maintained by Viktor Palkin (palkinvp@amazon.com) with help from ....
-
 ## License
-
-Licensing is under discussion. Only for internal AWS Professional Services Usage. DO NOT SHARE!!!
+This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file.
