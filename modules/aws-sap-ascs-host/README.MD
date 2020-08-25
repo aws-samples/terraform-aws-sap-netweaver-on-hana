@@ -26,22 +26,22 @@ module sap_ascs_hosts {
   instance_count = 2
   # Instance type - should be from the list of certified SAP instance sizes
   instance_type = "m5.large"
-  ami_id                            = "ami-09d74e2f05a55f016"
+  ami_id                            = "ami-xxxxxxxxx"
 
   # General
 
   # KMS Key for EBS Volumes Encryption
-  kms_key_arn = "arn:aws:kms:us-east-1:395915435888:key/5b6f7d73-8407-4c4e-b6f3-003d00501f6c"
+  kms_key_arn = "arn:aws:kms:us-east-1:xxxxxxx:key/5b6f7d73-8407-4c4e-b6f3-xxxxxxx"
 
   # Networking
-  vpc_id                            = "vpc-427c4d38"
+  vpc_id                            = "vpc-xxxxxxx"
 
   # The list of subnets to deploy the instances
-  subnet_ids                 = ["subnet-0d2bcd52", "subnet-221afa03"]
+  subnet_ids                 = ["subnet-xxxxxx", "subnet-xxxxxx"]
   # The Route53 private Zone name to create the host entry
-  dns_zone_name                 = "palkinvp.cloud"
+  dns_zone_name                 = "domain.ext"
   # The CIDR block for the onPremise Network
-  customer_cidr_blocks                = ["10.0.0.0/16"]
+  customer_cidr_blocks                = ["xx.xx.xx.xx/xx"]
   # The default security groups to be added
   customer_default_sg_ids = [ "default" ]
   
