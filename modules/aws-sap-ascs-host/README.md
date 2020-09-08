@@ -180,4 +180,4 @@ module sap_ascs_hosts {
 
 
 ## License
-This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file.
+This library is licensed under the MIT-0 License. See the [LICENSE](https://github.com/aws-samples/terraform-aws-sap-netweaver-on-hana/blob/master/LICENSE) file.

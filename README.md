@@ -21,9 +21,9 @@ For each of the SAP Components the following resources can be created:
 
 The following modules are embedded into the module and can be reused separately. Each sub module has it's own usage documented in the submodule folders as listed below.
 
-* [SAP HANA Instance Module](./modules/aws-sap-hana-host)
-* [ASCS Instance Module](./modules/aws-sap-ascs-host)
-* [Application Server Instance Module](./modules/aws-sap-app-host)
+* [SAP HANA Instance Module](https://github.com/aws-samples/terraform-aws-sap-netweaver-on-hana/tree/master/modules/aws-sap-app-host)
+* [ASCS Instance Module](https://github.com/aws-samples/terraform-aws-sap-netweaver-on-hana/tree/master/modules/aws-sap-ascs-host)
+* [Application Server Instance Module](https://github.com/aws-samples/terraform-aws-sap-netweaver-on-hana/tree/master/modules/aws-sap-app-host)
 
 
 ## Terraform versions
