@@ -1,0 +1,72 @@
+---
+schemaVersion: "2.2"
+description: "Download required SAP HANA Media from the specified S3 bucket"
+parameters:
+  InstallationMediaBucket:
+    type: String
+    description: "(Required) The bucket, where the installation files are stored"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "s3_cp"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - aws configure set default.s3.max_concurrent_requests 20
+    - aws configure set default.s3.max_queue_size 10000
+    - aws configure set default.s3.multipart_threshold 64MB
+    - aws configure set default.s3.multipart_chunksize 16MB
+    - aws configure set default.s3.max_bandwidth 10GB/s
+    - aws configure set default.s3.use_accelerate_endpoint false
+    - aws configure set default.s3.addressing_style path
+    - if [ ! -d "/software/hana" ]; then
+    -   mkdir /software/hana | tee a $SSM_LOG_FILE
+    - fi
+    - echo "Downloading required installation files from {{InstallationMediaBucket}}..." | tee a $SSM_LOG_FILE
+    - aws s3 sync s3://{{InstallationMediaBucket}}/HANA20SPS05 /software/hana --quiet | tee a $SSM_LOG_FILE
+    - if [ $? = 0 ]; then
+    -   echo "Downloaded Successfully..." | tee a $SSM_LOG_FILE
+    - else
+    -   echo "Could not download... Exiting" | tee a $SSM_LOG_FILE
+    -   exit 1
+    - fi
+    - # Checking if the directory is unarchived
+    - if [ -d "/software/hana/DATA_UNITS" ]; then
+    -   echo "Directory DATA_UNITS found. Will proceed further..." | tee a $SSM_LOG_FILE
+    - else
+    -   echo "Could not find DATA_UNITS directory in downloaded files. Trying find archive ..." | tee a $SSM_LOG_FILE
+    -   archivefile=$(find /software/hana -name '51054084.ZIP')
+    -   DISTRO=$(hostnamectl | grep "Operating System")
+    -   echo "Operating System found is $DISTRO" | tee a $SSM_LOG_FILE
+    -   SUB='SUSE'
+    -   if [[ "$STR" == *"$SUSE"* ]]; then
+    -     if [ -f "$archivefile" ]; then
+    -       echo "Archive found in $archivefile. Unzipping..." | tee a $SSM_LOG_FILE
+    -       unzip -qq $archivefile -d /software/hana/
+    -       echo "HANA Software has been downloaded and unzipped" | tee a $SSM_LOG_FILE
+    -     fi
+    -   else
+    -     echo "Regular Linux OS"
+    -     if [ -f "$archivefile" ]; then
+    -       echo "Archive found in $archivefile. Unraring..." | tee a $SSM_LOG_FILE
+    -       cd /software/hana
+    -       RARPATH=$(find /software/hana -name "rarlinux*.tar.gz")
+    -       if [ ! -z "$RARPATH" ]; then
+    -         echo "Found the rar in $RARPATH" | tee a $SSM_LOG_FILE
+    -       else
+    -         echo "Could not find the rar in downloaded files. Trying to download..." | tee a $SSM_LOG_FILE
+    -         wget https://www.rarlab.com/rar/rarlinuxx645.8.0.tar.gz q
+    -         RARPATH=$(find /software/hana name "rarlinux*.tar.gz")
+    -         if [ -z "$RARPATH" ]; then
+    -           echo "Could not download unrar..." | tee a $SSM_LOG_FILE
+    -           exit 1
+    -         fi
+    -       fi
+    -       tar xzf $RARPATH | tee a $SSM_LOG_FILE
+    -       RARPATH=$(find /software/hana name "unrar")
+    -       $RARPATH x inul $archivefile | tee a $SSM_LOG_FILE
+    -     else
+    -       echo "Could not find the archive file by *part1.exe pattern in /hana/software folder. Exiting..." | tee a $SSM_LOG_FILE
+    -       exit 1
+    -     fi
+    -   fi
+    - fi

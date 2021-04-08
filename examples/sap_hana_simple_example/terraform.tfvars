@@ -15,11 +15,21 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-resource "aws_iam_policy" "iam_policy" {
-  count = var.enabled ? 1 : 0
-
-  name   = var.policy_name
-#  path   = "/${var.tags["application_code"]}/"
-  policy = var.policy
-}
+aws_region             = ""
+enabled                = true
+hana_instance_type     = ""
+hana_is_scale_out      = false
+ami_id                 = ""
+default_instance_role  = true
+kms_key_arn            = ""
+vpc_id                 = ""
+subnet_ids             = [""]
+dns_zone_name          = ""
+customer_cidr_blocks   = [""]
+customer_default_sg_id = ""
+sid                    = ""
+iam_instance_role      = ""
+application_code       = ""
+application_name       = ""
+environment_type       = ""
+ssh_key                = ""

@@ -1,0 +1,20 @@
+---
+schemaVersion: "2.2"
+description: "Add the hostname to /etc/hosts"
+parameters:
+  Hostname:
+    type: String
+    description: "(Required) Hostname for the HANA instance"
+  PrivateIp:
+    type: String
+    description: "(Required) DNS Private Zone name"
+  PrivateZone:
+    type: String
+    description: "(Required) DNS Private Zone name"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Set_hostname"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo "{{ PrivateIp}} {{Hostname}}.{{PrivateZone}} {{Hostname}}" >> /etc/hosts

@@ -1,0 +1,31 @@
+---
+schemaVersion: "2.2"
+description: "Install required packages for SAP HANA on SLES"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Install_packages"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - DISTRO=$(hostnamectl | grep "Operating System")
+    - echo "Operating System found is $DISTRO" | tee a $SSM_LOG_FILE
+    - if [[ "$DISTRO" == *"SUSE"* ]]; then
+    -   zypper -n install systemd gtk2 libicu sudo tcsh libssh2-1 autoyast2-installation | tee -a $SSM_LOG_FILE
+    -   zypper -n install yast2-ncurses  cpupower  libgcc_s1 libstdc++6 nvme-cli cloud-netconfig-ec2 libopenssl1_0_0  | tee -a $SSM_LOG_FILE
+    -   zypper -n install insserv-compat unrar_wrapper chrony net-tools-deprecated libnuma-devel gcc gcc-c++ libatomic1 | tee -a $SSM_LOG_FILE
+    -   zypper -n install sapconf | tee -a $SSM_LOG_FILE
+    -   zypper -n install numactl | tee -a $SSM_LOG_FILE
+    -   zypper -n install saptune | tee -a $SSM_LOG_FILE
+    -   zypper -n install patterns-sles-sap_server | tee -a $SSM_LOG_FILE
+    -   zypper remove ulimit > /dev/null | tee -a $SSM_LOG_FILE
+    -   zypper update -y -l | tee -a $SSM_LOG_FILE
+    - else
+    -   echo "Regular Linux OS"
+    -   yum -y install python3 | tee -a ${SSM_LOG_FILE}
+    -   yum -y install unzip compat-sap-c++-9 xfsprogs autofs gcc nvme-cli | tee -a ${SSM_LOG_FILE}
+    -   yum -y install tuned-profiles-sap-hana sapconf libatomic libnsl uuidd tcsh bind-utils psmisc expect graphviz iptraf-ng | tee -a ${SSM_LOG_FILE}
+    -   yum -y install krb5-workstation libatomic libcanberra-gtk2 libibverbs libicu libpng12 libssh2 lm_sensors | tee -a ${SSM_LOG_FILE}
+    -   yum -y install numactl PackageKit-gtk3-module xorg-x11-xauth libaio libtool-ltdl lvm2 nfs-utils sysstat kernel | tee -a ${SSM_LOG_FILE}
+    -   yum -y group install Server  | tee -a ${SSM_LOG_FILE}
+    -   yum -y update
+    - fi

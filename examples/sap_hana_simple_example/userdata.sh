@@ -19,7 +19,3 @@ else
     unzip awscliv2.zip
     sudo ./aws/install
 fi
-
-sudo systemctl status amazon-ssm-agent
-sudo systemctl enable amazon-ssm-agent
-sudo systemctl start amazon-ssm-agent

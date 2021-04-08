@@ -1,0 +1,84 @@
+---
+schemaVersion: "2.2"
+description: "Run Post installation steps for SAP HANA"
+parameters:
+  Sid:
+    type: String
+    description: '(Required) SID of HANA system'
+    default: ''
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Post_installation"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo "$(date) __ done installing HANA DB.".. | tee -a $SSM_LOG_FILE
+    - sid=`echo {{ Sid }} | tr '[:upper:]' '[:lower:]'}`
+    - SID=`echo {{ Sid }} | tr '[:lower:]' '[:upper:]'}`
+    - if [ -z '$sid' ]
+    - then 
+    -   echo "Sid was not provided. Exiting..." | tee -a $SSM_LOG_FILE
+    - else
+    -   echo "Executing the post-installation scripts for {{ Sid }}" | tee -a $SSM_LOG_FILE
+    - fi
+    - echo "$(date) __ changing the mode of the HANA folders..." | tee -a $SSM_LOG_FILE
+    - adm="${sid}adm"
+    - mkdir -p /backup/data/${SID}
+    - mkdir -p /backup/log/${SID}
+    - chown ${adm}:sapsys -R /backup/data/${SID}
+    - if [ ! $? -eq 0 ]
+    - then
+    -   echo "Could not change /backup/data ownership. Exiting..." | tee -a $SSM_LOG_FILE
+    -   exit 1
+    - fi
+    - chown ${adm}:sapsys -R /backup/log/${SID}
+    - if [ ! $? -eq 0 ]
+    - then
+    -   echo "Could not change /backup/log ownership. Exiting..." | tee -a $SSM_LOG_FILE
+    -   exit 1
+    - fi
+    - v_global="/usr/sap/${SID}/SYS/global/hdb/custom/config/global.ini"
+    - v_daemon="/usr/sap/${SID}/SYS/global/hdb/custom/config/daemon.ini"
+    - if [ -e "$v_global" ]
+    - then
+    -     echo "$(date) __ deleting the old entries in $v_global" | tee -a $SSM_LOG_FILE
+    -     sed -i '/^\[persistence\]/d' $v_global
+    -     sed -i '/^basepath_shared/d' $v_global
+    -     sed -i '/^savepoint_interval_s/d' $v_global
+    -     sed -i '/^basepath_logbackup/d' $v_global
+    -     sed -i '/^basepath_databackup/d'  $v_global
+    -     sed -i '/^basepath_datavolumes/d' $v_global
+    -     sed -i '/^basepath_logvolumes/d' $v_global
+    -     sed -i '/^\[communication\]/d' $v_global
+    -     sed -i '/^listeninterface /d' $v_global
+    -     sed -i '/^ssl /d' $v_global
+    - fi
+    - echo "$(date) __ inserting the new entries in $v_global" | tee -a $SSM_LOG_FILE
+    - echo '[persistence]' >> $v_global
+    - echo 'basepath_shared = no' >> $v_global
+    - echo 'savepoint_interval_s = 300' >> $v_global
+    - echo 'basepath_datavolumes = /hana/data/'${SID} >> $v_global
+    - echo 'basepath_logvolumes = /hana/log/'${SID} >> $v_global
+    - echo 'basepath_databackup = /backup/data/'${SID} >> $v_global
+    - echo 'basepath_logbackup = /backup/log/'${SID} >> $v_global
+    - echo '' >> $v_global
+    - echo '[communication]' >> $v_global
+    - echo 'listeninterface = .global' >> $v_global
+    - echo 'ssl = systempki' >> $v_global
+    - if [ -e "$v_daemon" ] ; then
+    -    echo "$(date) __ deleting the old entries in $v_daemon" | tee -a $SSM_LOG_FILE
+    -    sed -i '/^\[scriptserver\]/d' $v_daemon
+    -    sed -i '/^instances/d' $v_daemon
+    - fi
+    - echo "$(date) __ inserting the new entries in $v_daemon" | tee -a $SSM_LOG_FILE
+    - echo '[scriptserver]' >> $v_daemon
+    - echo 'instances = 1' >> $v_daemon
+    - chown ${adm}:sapsys $v_daemon
+    - echo "$(date) __ done configuring HANA DB!" | tee -a $SSM_LOG_FILE
+    - su - $adm -c "hdbnsutil -reconfig --hostnameResolution=global"
+    - #Restart after final config
+    - echo "Restarting HANA DB after customizing global.ini" | tee -a $SSM_LOG_FILE
+    - su - ${adm} -c "HDB stop 2>&1"
+    - su - ${adm} -c "HDB start 2>&1"
+    - echo `date` END install-hana | tee -a $SSM_LOG_FILE
+    - rm -rf /software/hana

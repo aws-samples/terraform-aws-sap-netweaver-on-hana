@@ -1,0 +1,105 @@
+---
+schemaVersion: "2.2"
+description: "Prepare directories and mount the disks"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Create_directories"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo "Starting to create directories" | tee -a $SSM_LOG_FILE
+    - mkdir -p /hana/shared /hana/data /hana/log /usr/sap /usr/sap/trans /software /backup
+    - echo "Return code $?"
+- action: "aws:runShellScript"
+  name: "Mount_Disks"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - # Don't try and map disks until they are all present.
+    - WAIT_TIMEOUT=3600
+    - while [ $( ls -l /dev/nvme*n1 | wc -l ) -lt 9 ]; 
+    -   do sleep 5;
+    -   WAIT_TIMEOUT=$WAIT_TIMEOUT-5; 
+    -   if [ $WAIT_TIMEOUT < 0 ] 
+    -   then 
+    -     echo "Waiting for NVM disks timed out... Exiting" 
+    -     exit 1 
+    -   fi
+    - done
+    - echo "Create mapping table for NVMe devices" | tee -a $SSM_LOG_FILE
+    - for MYNVME in $(ls /dev/nvme*n1); do echo "$( nvme id-ctrl -v ${MYNVME} | grep /dev/xvd | awk '{ print $18 }' | sed -e 's/"//g' -e 's/\.*//g' ) ${MYNVME}" >> /tmp/diskmap; done | tee -a $SSM_LOG_FILE
+    - # Processing devices for /hana/data. Should be xvdf, xvdg and xvdh provided.
+    - if mountpoint -q /hana/data
+    - then
+    -   echo "/hana/data already mounted. Skipping..."
+    - else
+    -   echo "Create LVM striping for HANA data" | tee -a $SSM_LOG_FILE
+    -   pvcreate $( grep xvdf /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   pvcreate $( grep xvdg /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   pvcreate $( grep xvdh /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   vgcreate vg_hana_data  $( grep xvdf /tmp/diskmap  | awk '{print $2}' ) $( grep xvdg /tmp/diskmap  | awk '{print $2}' ) $( grep xvdh /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   lvcreate -l 100%FREE -i 3 -n lv_hana_data vg_hana_data | tee -a $SSM_LOG_FILE
+    -   mkfs.xfs /dev/vg_hana_data/lv_hana_data | tee -a $SSM_LOG_FILE
+    -   echo "/dev/vg_hana_data/lv_hana_data /hana/data xfs defaults 1 2" >> /etc/fstab | tee -a $SSM_LOG_FILE
+    - fi
+    - # Processing devices for /hana/log. Should be xvdm, xvdn provided.
+    - if mountpoint -q /hana/data
+    - then
+    -   echo "/hana/log already mounted. Skipping..."
+    - else
+    -   echo "Create LVM striping for HANA log" | tee -a $SSM_LOG_FILE
+    -   pvcreate $( grep xvdm /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   pvcreate $( grep xvdn /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   vgcreate vg_hana_log $( grep xvdm /tmp/diskmap  | awk '{print $2}' ) $( grep xvdn /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   lvcreate -l 100%FREE -i 2 -n lv_hana_log vg_hana_log | tee -a $SSM_LOG_FILE
+    -   mkfs.xfs /dev/vg_hana_log/lv_hana_log | tee -a $SSM_LOG_FILE
+    -   echo "/dev/vg_hana_log/lv_hana_log /hana/log xfs defaults 1 2" >> /etc/fstab | tee -a $SSM_LOG_FILE
+    - fi
+    - # Processing devices for /hana/shared. Should be xvdo provided.
+    - if mountpoint -q /hana/shared
+    - then
+    -   echo "/hana/shared already mounted. Skipping..."
+    - else
+    -   echo "Create LVM group for HANA shared" | tee -a $SSM_LOG_FILE
+    -   pvcreate $(  grep xvdo /tmp/diskmap  | awk '{print $2}') | tee -a $SSM_LOG_FILE
+    -   vgcreate vg_hana_shared $( grep xvdo /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   lvcreate -l 100%FREE -n lv_hana_shared vg_hana_shared | tee -a $SSM_LOG_FILE
+    -   mkfs.xfs /dev/vg_hana_shared/lv_hana_shared | tee -a $SSM_LOG_FILE
+    -   echo "/dev/vg_hana_shared/lv_hana_shared /hana/shared xfs defaults 1 2" >> /etc/fstab | tee -a $SSM_LOG_FILE
+    - fi
+    - # Processing devices for /usr/sap. Should be xvdq provided.
+    - if mountpoint -q /usr/sap
+    - then
+    -   echo "/usr/sap already mounted. Skipping..."
+    - else
+    -   echo "Create LVM group for /usr/sap" | tee -a $SSM_LOG_FILE
+    -   pvcreate $( grep xvdq /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   vgcreate vg_usrsap $( grep xvdq /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   lvcreate -l 100%FREE -n lv_usrsap vg_usrsap | tee -a $SSM_LOG_FILE
+    -   mkfs.xfs /dev/vg_usrsap/lv_usrsap | tee -a $SSM_LOG_FILE
+    -   echo "/dev/vg_usrsap/lv_usrsap /usr/sap xfs defaults 1 2" >> /etc/fstab | tee -a $SSM_LOG_FILE
+    - fi
+    - # Processing devices for /backup. Should be xvdp provided.
+    - if mountpoint -q /backup
+    - then
+    -   echo "/backup already mounted. Skipping..."
+    - else
+    -   echo "Create LVM group for /backup" | tee -a $SSM_LOG_FILE
+    -   pvcreate $(  grep xvdp /tmp/diskmap  | awk '{print $2}') | tee -a $SSM_LOG_FILE
+    -   vgcreate vg_hana_backup $( grep xvdp /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   lvcreate -l 100%FREE -n lv_hana_backup vg_hana_backup | tee -a $SSM_LOG_FILE
+    -   mkfs.xfs /dev/vg_hana_backup/lv_hana_backup | tee -a $SSM_LOG_FILE
+    -   echo "/dev/vg_hana_backup/lv_hana_backup /backup xfs defaults 1 2" >> /etc/fstab | tee -a $SSM_LOG_FILE
+    - fi
+    - # Processing devices swap. Should be xvdr provided.
+    - if [[ $(swapon -s) ]] 
+    - then
+    -   echo "Swap already exists. Skipping..."
+    - else
+    -   echo "Create LVM group for swap" | tee -a $SSM_LOG_FILE
+    -   pvcreate $( grep xvdr /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   vgcreate vg_swap $( grep xvdr /tmp/diskmap  | awk '{print $2}' ) | tee -a $SSM_LOG_FILE
+    -   lvcreate -l 100%FREE -n lv_swap vg_swap | tee -a $SSM_LOG_FILE
+    -   mkswap /dev/vg_swap/lv_swap
+    -   echo "/dev/vg_swap/lv_swap swap swap defaults 0 0" >> /etc/fstab
+    - fi

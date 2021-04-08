@@ -1,0 +1,15 @@
+---
+schemaVersion: "2.2"
+description: "Prepare Backup Folders"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Set_hostname"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - hana_sid=`hostname | cut -c6-8 | tr a-z A-Z`
+    - echo "Creating /backup/data/${hana_sid}"
+    - mkdir -p /backup/data/${hana_sid}
+    - echo "Creating /backup/log/${hana_sid}"
+    - mkdir -p /backup/log/${hana_sid}
+    - echo "I'm done!"

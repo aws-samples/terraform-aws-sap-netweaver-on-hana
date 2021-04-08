@@ -1,3 +1,4 @@
+#  https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/1dbba6ac03054d7eb07c819aae47d095.html
 /*
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * SPDX-License-Identifier: MIT-0
@@ -15,11 +16,16 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+module "system_user_password" {
+  source = "../_internal-modules/systems-manager/parameters"
 
-resource "aws_iam_policy" "iam_policy" {
-  count = var.enabled ? 1 : 0
-
-  name   = var.policy_name
-#  path   = "/${var.tags["application_code"]}/"
-  policy = var.policy
+  is_password                 = true
+  parameter_short_description = "SAP Super User Password"
+  application_code            = var.application_code
+  environment                 = var.environment
+  application_name            = var.application_name
+  password_length             = 10
+  kms_key_arn                 = var.kms_key_arn
+  value                       = ""
+  tags                        = merge(module.tags.values)
 }

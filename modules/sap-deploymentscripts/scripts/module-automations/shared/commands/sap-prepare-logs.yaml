@@ -1,0 +1,23 @@
+---
+schemaVersion: "2.2"
+description: "Prepare the Environment Variables"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Prepare_Environment"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - mkdir -p "/root/install/"
+    - touch /root/install/install.log
+    - export SSM_LOG_FILE=/root/install/install.log
+    - if ! grep -Fxq "SSM_LOG_FILE" ~/.bashrc
+    - then 
+    -   echo "SSM_LOG_FILE=/root/install/install.log" >> ~/.bashrc
+    - fi
+    - echo "Log file created..."
+- action: "aws:runShellScript"
+  name: "Set_CLI_Sig_V4"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - aws configure set default.s3.signature_version s3v4

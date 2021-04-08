@@ -15,11 +15,42 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#Control Variable
+variable "trigger_automatically" {
+  default = false
+}
 
-resource "aws_iam_policy" "iam_policy" {
-  count = var.enabled ? 1 : 0
+#Installation binary sources
+variable "binaries_bucket_name" {}
+variable "binaries_key_arn" {}
+variable "binaries_folder" {
+  default = ""
+}
 
-  name   = var.policy_name
-#  path   = "/${var.tags["application_code"]}/"
-  policy = var.policy
+#Infrastructure Details
+variable "hana_instance_ids" {
+  type = list
+}
+
+
+variable "dns_zone_name" {}
+
+variable "efs_sapmnt" {
+  default = "N/A"
+}
+
+# Security
+variable "kms_key_arn" {}
+
+# Software Details 
+variable "product" {
+  description = "Identifies the product to be installed. Valid values: 1. 'NW750.HDB.ABAPHA' 2. NW740SR2.HDB.PIHA"
+}
+
+# Tags
+variable "environment" {}
+variable "application_code" {}
+variable "application_name" {}
+variable "sid" {
+  default = "TST"
 }

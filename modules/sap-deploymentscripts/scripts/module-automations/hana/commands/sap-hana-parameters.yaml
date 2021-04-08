@@ -1,0 +1,100 @@
+---
+schemaVersion: "2.2"
+description: "Set Up Required OS parameters for SAP HANA"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Tune_Oss_parameters"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - if [[ "$DISTRO" == *"SUSE"* ]]; then
+    - saptune daemon start
+    - saptune solution apply HANA 
+    - else
+    - #This section is from OSS #2292690 - SAP HANA DB: Recommended OS settings for sap 7
+    - echo "`date` - Apply saptune HANA profile" | tee -a $SSM_LOG_FILE
+    - systemctl start tuned | tee -a $SSM_LOG_FILE
+    - systemctl enable tuned | tee -a $SSM_LOG_FILE
+    - mkdir /etc/tuned/sap-hana | tee -a $SSM_LOG_FILE
+    - cp /usr/lib/tuned/sap-hana/tuned.conf /etc/tuned/sap-hana/tuned.conf | tee -a $SSM_LOG_FILE
+    - sed -i '/force_latency/ c\force_latency=70' /etc/tuned/sap-hana/tuned.conf | tee -a $SSM_LOG_FILE
+    - tuned-adm profile sap-hana | tee -a $SSM_LOG_FILE
+    - tuned-adm active | tee -a $SSM_LOG_FILE
+    - fi
+- action: "aws:runShellScript"
+  name: "start_ntp"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - if [[ "$DISTRO" == *"SUSE"* ]]; then
+    - chkconfig kdump off
+    - echo "net.ipv4.tcp_slow_start_after_idle=0" >> /etc/sysctl.conf
+    - sysctl -p /etc/sysctl.conf 
+    - echo "kernel.shmmni=65536" >> /etc/sysctl.conf
+    - sysctl -p /etc/sysctl.conf
+    - sed -i '/DHCLIENT_SET_HOSTNAME/ c\DHCLIENT_SET_HOSTNAME="no"' /etc/sysconfig/network/dhcp
+    - service network restart
+    - echo never > /sys/kernel/mm/transparent_hugepage/enabled
+    - echo 0 > /proc/sys/kernel/numa_balancing
+    - echo 0 > /sys/kernel/mm/ksm/run
+    - else
+    - echo "`date` Removing default sap NTP server pools" | tee -a $SSM_LOG_FILE
+    - cp /etc/ntp.conf /etc/ntp.conf.backup
+    - grep -v iburst /etc/ntp.conf.backup > /etc/ntp.conf
+    - echo "`date` Adding NTP server pools" | tee -a $SSM_LOG_FILE
+    - echo "server 0.pool.ntp.org" >> /etc/ntp.conf
+    - echo "server 1.pool.ntp.org" >> /etc/ntp.conf
+    - echo "server 2.pool.ntp.org" >> /etc/ntp.conf
+    - echo "server 3.pool.ntp.org" >> /etc/ntp.conf
+    - echo "`date` Configuring NTP service for sap 7.x" | tee -a $SSM_LOG_FILE
+    - systemctl enable ntpd.service | tee -a $SSM_LOG_FILE
+    - systemctl start ntpd.service | tee -a $SSM_LOG_FILE
+    - systemctl restart systemd-timedated.service | tee -a $SSM_LOG_FILE    
+    - fi    
+- action: "aws:runShellScript"
+  name: "start_fs"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo "`date` Enabling Autofs and NFS for sap 7.x" | tee -a $SSM_LOG_FILE
+    - systemctl enable nfs | tee -a $SSM_LOG_FILE
+    - systemctl start nfs | tee -a $SSM_LOG_FILE
+    - systemctl enable autofs | tee -a $SSM_LOG_FILE
+    - systemctl start autofs | tee -a $SSM_LOG_FILE   
+    - chkconfig autofs on 
+- action: "aws:runShellScript"
+  name: "set_clocksource"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - if [[ "$DISTRO" == *"SUSE"* ]]; then
+    - echo "echo 0 > /sys/kernel/mm/ksm/run" >> /etc/init.d/boot.local
+    - cp -p /etc/default/grub /etc/default/grub.quickstart.save
+    - sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="[^"]*/& numa_balancing=disable transparent_hugepage=never intel_idle.max_cstate=1 processor.max_cstate=1/' /etc/default/grub
+    - cp -p /boot/grub2/grub.cfg /boot/grub2/grub.cfg.quickstart.save
+    - grub2-mkconfig -o /boot/grub2/grub.cfg
+    - conf_file="/etc/dracut.conf.d/07-aws-type-switch.conf"
+    - rules_file="/etc/udev/rules.d/70-persistent-net.rules"
+    - if [ -f $rules_file ]; then
+    - log "`date`  File $rules_file exits - removing it"
+    - rm -fr $rules_file
+    - fi
+    - if [ -f $conf_file ]; then
+    - log "`date`  File $conf_file already exist so skipping the step to enable resize"
+    - else
+    - log "`date`  File $conf_file doesn't exist. Executing steps to enable resize"
+    - ## ----------------------------------------------------------------------------------------------- ##
+    - ## -- Added xfs to $conf_file for SLES 15                                                       -- ##
+    - ## -- SLES15 creates root file system as xfs, instead ext4 by earlier versions.                 -- ##
+    - ## -- Instances won't start after reboot as the root file system can't be mounted               -- ##
+    - ## ----------------------------------------------------------------------------------------------- ##
+    - echo 'drivers+="ena xfs ext4 nvme nvme-core virtio virtio_scsi xen-blkfront xen-netfront "' >> $conf_file
+    - mkinitrd | tee -a ${HANA_LOG_FILE}
+    - fi    
+    - else
+    - echo  "`date` Setting clocksource to TSC" | tee -a $SSM_LOG_FILE
+    - echo "tsc" > /sys/devices/system/clocksource/*/current_clocksource | tee -a $SSM_LOG_FILE
+    - cp /etc/default/grub /etc/default/grub.backup | tee -a $SSM_LOG_FILE
+    - sed -i '/GRUB_CMDLINE_LINUX/ s|"| clocksource=tsc"|2' /etc/default/grub | tee -a $SSM_LOG_FILE
+    - grub2-mkconfig -o /boot/grub2/grub.cfg | tee -a $SSM_LOG_FILE    
+    - fi    

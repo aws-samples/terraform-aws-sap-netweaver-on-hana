@@ -1,0 +1,56 @@
+---
+schemaVersion: "2.2"
+description: "Install required packages for SAP HANA"
+parameters:
+  MasterPassword:
+    type: String
+    description: "(Required) The master password for SAP Installation"
+    default: ''
+  Sid:
+    type: String
+    description: "(Required) The Sid of HANA system to be installed"
+    default: ''
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Generate_Passfile"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - HANA_MEDIA=`find /software/hana -name "DATA_UNITS"`
+    - if [ -z "$HANA_MEDIA" ]
+    - then 
+    -   echo "Could not find the DATA_UNITS folder in /software/hana. Check if everything was downloaded successfully. Exiting..." | tee -a $SSM_LOG_FILE
+    -   exit 1
+    - fi
+    - echo "Starting the HANA installation from the $HANA_MEDIA directory..." | tee -a $SSM_LOG_FILE
+    - HANAPASSWORD="{{MasterPassword}}"
+    - #Password File
+    - PASSFILE=$HANA_MEDIA/../passwords.xml
+    - echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $PASSFILE
+    - echo "<Passwords>" >> $PASSFILE
+    - echo "<password>${HANAPASSWORD}</password>" >> $PASSFILE
+    - echo "<sapadm_password>${HANAPASSWORD}</sapadm_password>" >> $PASSFILE
+    - echo "<system_user_password>${HANAPASSWORD}</system_user_password>" >> $PASSFILE
+    - echo "<root_password>${HANAPASSWORD}</root_password>" >> $PASSFILE
+    - echo "</Passwords>" >> $PASSFILE
+    - echo "`date` Passfile Preparation finished..." | tee -a $SSM_LOG_FILE
+- action: "aws:runShellScript"
+  name: "Run_installer"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - HANA_MEDIA=`find /software/hana -name "DATA_UNITS"`
+    - if [ -z "$HANA_MEDIA" ]
+    - then 
+    -   echo "Could not find the DATA_UNITS folder in /software/hana. Check if everything was downloaded successfully. Exiting..." | tee -a $SSM_LOG_FILE
+    -   exit 1
+    - fi
+    - PASSFILE=$HANA_MEDIA/../passwords.xml
+    - chmod +x $HANA_MEDIA/HDB_LCM_LINUX_X86_64/hdblcm
+    - HOSTNAME=`(hostname)`
+    - INSTANCE=00
+    - SID=`echo "{{Sid}}" | tr a-z A-Z`
+    - echo "Executing installation from $HANA_MEDIA/HDB_LCM_LINUX_X86_64/hdblcm for SID $SID, instance 00, hostname $HOSTNAME..."
+    - cat $PASSFILE | $HANA_MEDIA/HDB_LCM_LINUX_X86_64/hdblcm --action=install --components=client,server --batch --autostart=1 -sid=$SID  --hostname=$HOSTNAME --number=$INSTANCE  --read_password_from_stdin=xml | tee -a $SSM_LOG_FILE
+    - echo "`date` Installation finished. Please check logs..." | tee -a $SSM_LOG_FILE
+    - rm $PASSFILE

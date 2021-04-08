@@ -1,0 +1,20 @@
+---
+schemaVersion: "2.2"
+description: "Set the hostname"
+parameters:
+  Hostname:
+    type: String
+    description: "(Required) Hostname for the HANA instance"
+  PrivateZone:
+    type: String
+    description: "(Required) DNS Private Zone name"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Set_hostname"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - hostnamectl set-hostname --static {{ Hostname }} 
+    - 'echo "preserve_hostname: true" >> /etc/cloud/cloud.cfg'
+    - IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+    - echo "$IP {{Hostname}}.{{PrivateZone}} {{Hostname}}" >> /etc/hosts

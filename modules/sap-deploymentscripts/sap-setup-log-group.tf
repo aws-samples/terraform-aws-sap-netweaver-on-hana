@@ -15,11 +15,15 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+module "sap_setup_logs_group" {
+  source = "../_internal-modules/monitoring/logs"
 
-resource "aws_iam_policy" "iam_policy" {
-  count = var.enabled ? 1 : 0
+  type             = "setup"
+  application_code = var.application_code
+  application_name = var.application_name
+  environment      = var.environment
+  logs_retention   = 7
+  kms_key_arn      = var.kms_key_arn
 
-  name   = var.policy_name
-#  path   = "/${var.tags["application_code"]}/"
-  policy = var.policy
+  tags = module.tags.values
 }

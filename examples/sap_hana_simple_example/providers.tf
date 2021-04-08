@@ -15,11 +15,6 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-resource "aws_iam_policy" "iam_policy" {
-  count = var.enabled ? 1 : 0
-
-  name   = var.policy_name
-#  path   = "/${var.tags["application_code"]}/"
-  policy = var.policy
+provider "aws" {
+  region = var.aws_region
 }

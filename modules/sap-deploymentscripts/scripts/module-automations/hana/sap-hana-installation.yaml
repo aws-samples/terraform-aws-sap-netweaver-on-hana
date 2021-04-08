@@ -1,0 +1,92 @@
+---
+schemaVersion: '0.3'
+description: 'Setup the SAP HANA Database on sap instances'
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  AutomationAssumeRole:
+    type: String
+    description: "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf. "
+    default: ''
+  InstanceId:
+    type: String
+    description: "(Required) The instance id to install HANA"
+    default: ''
+  InstallationMediaBucket:
+    type: String
+    description: "(Required) Hana media location"
+    default: '${DefaultBinariesBucket}'
+  CloudWatchLogGroupName:
+    type: String
+    description: "(Required) Cloud Watch log group for the log output"
+    default: '${CloudWatchLogGroupName}'
+mainSteps:
+- name: Get_master_password_from_ssm
+  action: aws:executeAwsApi
+  inputs:
+    Service: ssm
+    Api: get_parameter
+    Name: '${MasterPasswordParameterName}'
+    WithDecryption: True
+  outputs:
+  - Name: MasterPassword
+    Selector: $.Parameter.Value
+    Type: String
+- name: Get_Sid
+  action: aws:executeAwsApi
+  inputs:
+    Service: ec2
+    Api: describe_tags
+    Filters:
+    - Name: 'key'
+      Values:
+      - 'Sid'
+    - Name: 'resource-id'
+      Values:
+      - '{{ InstanceId }}'
+  outputs:
+  - Name: Sid
+    Selector: $.Tags[0].Value
+    Type: String
+- name: Prepare_Backup_Folders
+  action: aws:runCommand
+  inputs:
+    DocumentName: ${PrepareBackupFoldersDocumentName}
+    InstanceIds: 
+    - '{{ InstanceId }}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: True
+- name: Download_hana_software
+  action: aws:runCommand
+  inputs:
+    DocumentName: ${DownloadSoftwareDocumentName}
+    InstanceIds: 
+    - '{{ InstanceId }}'
+    Parameters:
+      InstallationMediaBucket: '{{ InstallationMediaBucket }}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: True
+- name: Execute_installation
+  action: aws:runCommand
+  inputs:
+    DocumentName: ${ExecuteInstallationDocumentName}
+    InstanceIds: 
+    - '{{ InstanceId }}'
+    Parameters:
+      MasterPassword: '{{ Get_master_password_from_ssm.MasterPassword }}'
+      Sid: '{{ Get_Sid.Sid }}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: True
+- name: Post_installation
+  action: aws:runCommand
+  inputs:
+    DocumentName: ${PostInstallationDocumentName}
+    InstanceIds: 
+    - '{{ InstanceId }}'
+    Parameters:
+      Sid: '{{ Get_Sid.Sid }}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: True

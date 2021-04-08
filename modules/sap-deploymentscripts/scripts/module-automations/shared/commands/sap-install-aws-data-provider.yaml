@@ -1,0 +1,21 @@
+---
+schemaVersion: "2.2"
+description: "Set the hostname"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Install_Aws_Data_Provider"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - DISTRO=$(hostnamectl | grep "Operating System")
+    - echo "Operating System found is $DISTRO" | tee a $SSM_LOG_FILE
+    - cd /tmp
+    - if [[ "$DISTRO" == *"SUSE"* ]]; then
+    - wget https://aws-sap-data-provider.s3.amazonaws.com/Installers/aws-sap-dataprovider-sles.x86_64.rpm  | tee -a $SSM_LOG_FILE
+    - wget https://aws-sap-data-provider.s3.amazonaws.com/Installers/RPM-GPG-KEY-AWS   | tee -a $SSM_LOG_FILE
+    - rpm --import RPM-GPG-KEY-AWS   | tee -a $SSM_LOG_FILE    
+    - zypper install -y aws-sap-dataprovider-sles.x86_64.rpm   | tee -a $SSM_LOG_FILE    
+    - else
+    - wget https://aws-sap-data-provider.s3.amazonaws.com/Installers/aws-sap-dataprovider-rhel.x86_64.rpm  | tee -a $SSM_LOG_FILE
+    - yum -y install aws-sap-dataprovider-rhel.x86_64.rpm  | tee -a $SSM_LOG_FILE    
+    - fi    
