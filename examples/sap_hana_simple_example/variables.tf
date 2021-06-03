@@ -68,7 +68,7 @@ variable "dns_zone_name" {
 }
 
 variable "customer_cidr_blocks" {
-  default     = []
+  default     = ""
   description = "(Optional) The CIDR blocks to allow end-user connectivity from"
 }
 

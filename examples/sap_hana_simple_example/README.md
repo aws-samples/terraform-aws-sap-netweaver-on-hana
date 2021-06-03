@@ -8,6 +8,9 @@ SAP HANA media needs to be uploaded to Amazon S3. Create a root folder with any 
 ### What version does this support?
 The SAP HANA installation takes place via an AWS Systems Manager Automation Document. This has been tested with SAP HANA 20 SPS05. The SSM Automation Document itself can be adapted to any SAP HANA version as needed.
 
+### Terraform versions
+Terraform >=0.15
+
 ### How to deploy?
 Update `terraform.tfvars` as appropriate to match your AWS account
 
