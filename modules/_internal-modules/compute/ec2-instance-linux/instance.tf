@@ -33,8 +33,9 @@ resource "aws_instance" "linux-server" {
   }
 
   tags = merge(var.tags, count.index == 0 ?
-    map("Name", "${var.tags["Name"]}-primary", "Hostname", var.hostnames[0]) :
-  map("Name", "${var.tags["Name"]}-additional-${count.index + 1}", "Hostname", var.hostnames[count.index]))
+    tomap({ "Name" = "${var.tags["Name"]}-primary", "Hostname" = var.hostnames[0] }) :
+    tomap({ "Name" = "${var.tags["Name"]}-additional-${count.index + 1}", "Hostname" = var.hostnames[count.index] })
+  )
 
   root_block_device {
     # device_name = count.index == 0 ? "${var.tags["Name"]}-primary-root-volume" : "${var.tags["Name"]}-additional-${count.index + 1}-root-volume"

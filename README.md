@@ -28,7 +28,7 @@ The following modules are embedded into the module and can be reused separately.
 
 ## Terraform versions
 
-Terraform 0.12. Pin module version to `~> v2.0`. 
+Terraform 0.15. Pin module version to `~> v2.0`. 
 
 ## Requirements
 

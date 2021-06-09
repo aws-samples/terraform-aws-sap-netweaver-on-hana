@@ -33,6 +33,10 @@ variable "hana_disks_data_gp2" {
       disk_nb   = 3,
       disk_size = 225
     },
+    "r5.8xlarge" = {
+      disk_nb   = 3,
+      disk_size = 225
+    },    
     "x1e.2xlarge" = {
       disk_nb   = 3,
       disk_size = 225
@@ -99,6 +103,10 @@ variable "hana_disks_logs_gp2" {
       disk_nb   = 2,
       disk_size = 175
     },
+    "r5.8xlarge" = {
+      disk_nb   = 2,
+      disk_size = 175
+    },    
     "x1e.2xlarge" = {
       disk_nb   = 2,
       disk_size = 175
@@ -161,6 +169,10 @@ variable "hana_disks_data_io1" {
       disk_nb   = 1,
       disk_size = 300
     },
+    "r5.8xlarge" = {
+      disk_nb   = 1,
+      disk_size = 300
+    },    
     "r5.4xlarge" = {
       disk_nb   = 1,
       disk_size = 300

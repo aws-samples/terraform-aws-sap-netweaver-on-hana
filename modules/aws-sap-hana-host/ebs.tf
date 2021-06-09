@@ -54,7 +54,7 @@ resource "aws_ebs_volume" "xvdo_volume" {
   count = var.enabled ? (! var.is_scale_out ? var.instance_count : 0) : 0
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-hana_shared"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-hana_shared" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_xvdo" {
@@ -77,7 +77,7 @@ resource "aws_ebs_volume" "data_volumes" {
   count = var.enabled ? var.instance_count * local.hana_data_disks_number : 0
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-hana_data-${count.index}"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-hana_data-${count.index}" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_data_volumes" {
@@ -101,7 +101,7 @@ resource "aws_ebs_volume" "log_volumes" {
   count = var.enabled ? var.instance_count * local.hana_log_disks_number : 0
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-hana_log-${count.index}"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-hana_log-${count.index}" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_log_volumes" {
@@ -126,7 +126,7 @@ resource "aws_ebs_volume" "backup_volumes" {
   count = var.enabled ? var.instance_count : 0
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-hana_backup"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-hana_backup" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_backup_volumes" {
@@ -149,7 +149,7 @@ resource "aws_ebs_volume" "usr_sap_volumes" {
   count = var.enabled ? var.instance_count : 0
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-hana_usr_sap"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-hana_usr_sap" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_xvdq" {
@@ -173,7 +173,7 @@ resource "aws_ebs_volume" "xvdr_volume" {
 
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-app_swap"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-app_swap" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_xvdr" {

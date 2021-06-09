@@ -29,7 +29,7 @@ resource "aws_ebs_volume" "xvdf_volume" {
 
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-app_usr_sap"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-app_usr_sap" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_xvdf" {
@@ -52,7 +52,7 @@ resource "aws_ebs_volume" "xvdg_volume" {
 
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-app_swap"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-app_swap" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_xvdg" {

@@ -28,7 +28,7 @@ resource "aws_ebs_volume" "xvdg_volume" {
   count = var.enabled ? var.instance_count : 0
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-ascs_swap"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-ascs_swap" }))
 }
 resource "aws_volume_attachment" "ebs_attach_xvdg" {
   device_name = "/dev/xvdg"
@@ -49,7 +49,7 @@ resource "aws_ebs_volume" "xvdf_volume" {
   count = var.enabled ? var.instance_count : 0
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-ascs_usr_sap"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-ascs_usr_sap" }))
 }
 resource "aws_volume_attachment" "ebs_attach_xvdf" {
   device_name = "/dev/xvdf"
@@ -72,7 +72,7 @@ resource "aws_ebs_volume" "xvdh_volume" {
   }
   tags = merge(
     module.tags.values,
-  map("Name", "${module.tags.values["Name"]}-app_sapmnt"))
+  tomap({ "Name" = "${module.tags.values["Name"]}-app_sapmnt" }))
 }
 
 resource "aws_volume_attachment" "ebs_attach_xvdh" {
