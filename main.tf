@@ -64,6 +64,8 @@ module hana_host {
   customer_cidr_blocks = var.customer_cidr_blocks
   # The default security group to be added
   customer_default_sg_id = var.customer_default_sg_id
+  # The default security group to be added
+  efs_security_group_id = module.sap_efs.security_group_id
 
   # Instance Role
   iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
