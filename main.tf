@@ -90,6 +90,7 @@ module sap_ascs_host {
   # General
   ami_id      = var.ami_id
   kms_key_arn = var.kms_key_arn
+  ssh_key     = var.ssh_key
 
   # Networking
   vpc_id = var.vpc_id
@@ -124,6 +125,7 @@ module sap_app_host {
   # General
   ami_id      = var.ami_id
   kms_key_arn = var.kms_key_arn
+  ssh_key     = var.ssh_key
 
   # Networking
   vpc_id = var.vpc_id
