@@ -52,6 +52,7 @@ module hana_host {
 
   # KMS Key for EBS Volumes Encryption
   kms_key_arn = var.kms_key_arn
+  ssh_key     = var.ssh_key
 
   # Networking
   vpc_id = var.vpc_id
