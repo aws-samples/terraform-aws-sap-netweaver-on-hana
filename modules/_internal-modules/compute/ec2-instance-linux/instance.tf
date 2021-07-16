@@ -25,6 +25,7 @@ resource "aws_instance" "linux-server" {
   user_data              = var.user_data != "" ? var.user_data : templatefile("${path.module}/default-user-data.sh", {})
   key_name               = var.ssh_key
   ebs_optimized          = var.ebs_optimized
+  source_dest_check      = var.source_dest_check
   iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile[0].name
   monitoring             = true
 

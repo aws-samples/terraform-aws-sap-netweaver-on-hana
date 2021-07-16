@@ -41,6 +41,7 @@ module "instance" {
   instance_type    = var.instance_type
   root_volume_size = var.root_volume_size
 
+  ssh_key                = var.ssh_key
   subnet_ids             = var.subnet_ids
   vpc_security_group_ids = flatten([aws_security_group.instance.*.id[0], aws_security_group.sap_application.*.id[0], var.customer_default_sg_ids])
   iam_role               = var.default_instance_role ? module.default_instance_role.role_name : var.iam_instance_role

@@ -72,3 +72,33 @@ resource "aws_security_group_rule" "sap_application_tcp30013-30015_in" {
   protocol          = "tcp"
   cidr_blocks       = concat([data.aws_vpc.vpc.cidr_block], var.customer_cidr_blocks)
 }
+
+resource "aws_security_group_rule" "sap_application_tcp2049_in" {
+  count                    = var.enabled ? 1 : 0
+  security_group_id        = aws_security_group.sap_application.*.id[0]
+  type                     = "ingress"
+  from_port                = "2049"
+  to_port                  = "2049"
+  protocol                 = "tcp"
+  source_security_group_id = var.efs_security_group_id != "" ? var.efs_security_group_id : aws_security_group.sap_application.*.id[0]
+}
+
+resource "aws_security_group_rule" "sap_application_30001_in" {
+  count                    = var.enabled ? 1 : 0
+  security_group_id        = aws_security_group.sap_application.*.id[0]
+  type                     = "ingress"
+  from_port                = "30001"
+  to_port                  = "30102"
+  protocol                 = "tcp"
+  cidr_blocks       = concat([data.aws_vpc.vpc.cidr_block], var.customer_cidr_blocks)
+}
+
+resource "aws_security_group_rule" "sap_application_40002_in" {
+  count                    = var.enabled ? 1 : 0
+  security_group_id        = aws_security_group.sap_application.*.id[0]
+  type                     = "ingress"
+  from_port                = "40002"
+  to_port                  = "40102"
+  protocol                 = "tcp"
+  cidr_blocks       = concat([data.aws_vpc.vpc.cidr_block], var.customer_cidr_blocks)
+}
