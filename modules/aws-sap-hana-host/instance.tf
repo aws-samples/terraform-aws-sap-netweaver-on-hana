@@ -41,6 +41,9 @@ module instance {
   instance_type    = var.instance_type
   root_volume_size = var.root_volume_size
 
+  // Sets source_dest_check to false when HA is enabled
+  source_dest_check = var.enable_ha ? false : true
+
   subnet_ids             = var.subnet_ids
   vpc_security_group_ids = [aws_security_group.instance.*.id[0], aws_security_group.sap_application.*.id[0], var.customer_default_sg_id]
   iam_role               = var.default_instance_role ? module.default_instance_role.role_name : var.iam_instance_role
