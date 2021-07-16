@@ -20,6 +20,12 @@
 variable "aws_region" {
   description = "(Required) AWS Region to execute deployment to"
 }
+variable "aws_access_key" {
+  description = "(Required) AWS Access key for your account"
+}
+variable "aws_secret_key" {
+  description = "(Required) AWS Secret key for your account"
+}
 
 variable "enabled" {
   default     = true

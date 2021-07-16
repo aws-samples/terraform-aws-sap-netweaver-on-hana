@@ -58,6 +58,11 @@ variable "user_data" {
   default     = ""
 }
 
+variable "enable_ha" {
+  default     = false
+  description = "(Optional) Defines how many instances should be deployed"
+  type        = bool
+}
 
 # Networking Variables
 variable "vpc_id" {
