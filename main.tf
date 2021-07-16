@@ -40,6 +40,7 @@ module hana_host {
 
   # Instance Count depending on the environment
   instance_count = var.hana_is_scale_out ? (var.enable_ha ? 2 * var.hana_scale_out_node_count : var.hana_scale_out_node_count) : (var.enable_ha ? 2 : 1)
+  enable_ha = var.enable_ha
   instance_type  = var.hana_instance_type
 
   is_scale_out = var.hana_is_scale_out
