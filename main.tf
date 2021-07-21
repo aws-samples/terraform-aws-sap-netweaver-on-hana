@@ -69,6 +69,7 @@ module hana_host {
   efs_security_group_id = module.sap_efs.security_group_id
 
   # Instance Role
+  default_instance_role = var.default_instance_role
   iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
@@ -104,6 +105,7 @@ module sap_ascs_host {
   efs_security_group_id = module.sap_efs.security_group_id
 
   # Instance Role
+  default_instance_role = var.default_instance_role
   iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
@@ -139,6 +141,7 @@ module sap_app_host {
   efs_security_group_id = module.sap_efs.security_group_id
 
   # Instance Role
+  default_instance_role = var.default_instance_role
   iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
