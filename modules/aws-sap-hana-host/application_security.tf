@@ -103,7 +103,7 @@ resource "aws_security_group_rule" "sap_application_40002_in" {
   cidr_blocks       = concat([data.aws_vpc.vpc.cidr_block], var.customer_cidr_blocks)
 }
 
-resource "aws_security_group_rule" "sap_application_40002_in" {
+resource "aws_security_group_rule" "sap_application_all_in" {
   count                    = var.enabled ? 1 : 0
   security_group_id        = aws_security_group.sap_application.*.id[0]
   type                     = "ingress"
