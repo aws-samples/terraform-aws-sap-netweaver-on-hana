@@ -238,6 +238,16 @@ resource "aws_security_group_rule" "sap_application_tcp4237_in" {
   cidr_blocks       = [data.aws_vpc.vpc.cidr_block]
 }
 
+resource "aws_security_group_rule" "sap_application_tcp3900_in" {
+  count             = var.enabled ? 1 : 0
+  security_group_id = aws_security_group.sap_application.*.id[0]
+  type              = "ingress"
+  from_port         = "3900"
+  to_port           = "3900"
+  protocol          = "tcp"
+  cidr_blocks       = [data.aws_vpc.vpc.cidr_block]
+}
+
 resource "aws_security_group_rule" "sap_application_tcp2049_in" {
   count                    = var.enabled ? 1 : 0
   security_group_id        = aws_security_group.sap_application.*.id[0]
