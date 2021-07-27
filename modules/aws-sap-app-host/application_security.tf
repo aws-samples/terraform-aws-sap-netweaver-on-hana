@@ -163,7 +163,7 @@ resource "aws_security_group_rule" "sap_application_tcp3900_in" {
   security_group_id = aws_security_group.sap_application.*.id[0]
   type              = "ingress"
   from_port         = "3900"
-  to_port           = "3900"
+  to_port           = "3901"
   protocol          = "tcp"
   cidr_blocks       = [data.aws_vpc.vpc.cidr_block]
 }
