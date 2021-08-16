@@ -49,3 +49,7 @@ variable "hostnames" {
 }
 variable "kms_key_arn" {
 }
+
+variable "source_dest_check" {
+  default = true
+}

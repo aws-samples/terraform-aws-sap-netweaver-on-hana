@@ -31,3 +31,7 @@ output "instance_ids" {
 output "security_group_id" {
   value = aws_security_group.sap_application.*.id
 }
+
+output "instance_public_ips" {
+  value = module.instance.instance_public_ips
+}

@@ -2,6 +2,7 @@
 **/.terraform/*
 *.plan*
 *.lock*
+tfout.log
 
 # .tfstate files
 *.tfstate

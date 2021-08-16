@@ -58,6 +58,11 @@ variable "user_data" {
   default     = ""
 }
 
+variable "enable_ha" {
+  default     = false
+  description = "(Optional) Defines how many instances should be deployed"
+  type        = bool
+}
 
 # Networking Variables
 variable "vpc_id" {
@@ -80,6 +85,11 @@ variable "customer_cidr_blocks" {
   description = "(Optional) The CIDR blocks to allow end-user connectivity from"
 }
 
+variable "efs_security_group_id" {
+  type        = string
+  description = "(Optional) The security group for EFS file system to allow the mount. Required if EFS is used for /sapmnt"
+  default     = ""
+}
 
 # OS Parameters
 variable "ami_id" {

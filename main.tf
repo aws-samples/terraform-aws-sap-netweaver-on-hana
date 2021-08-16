@@ -26,7 +26,7 @@ module sap_efs {
 
   subnet_ids         = var.subnet_ids
   vpc_id             = var.vpc_id
-  security_group_ids = concat(module.sap_ascs_host.security_group_id, module.sap_app_host.security_group_id)
+  security_group_ids = concat(module.sap_ascs_host.security_group_id, module.sap_app_host.security_group_id, module.hana_host.security_group_id)
   name               = var.efs_name
 
   application_code = lower(var.application_code)
@@ -40,6 +40,7 @@ module hana_host {
 
   # Instance Count depending on the environment
   instance_count = var.hana_is_scale_out ? (var.enable_ha ? 2 * var.hana_scale_out_node_count : var.hana_scale_out_node_count) : (var.enable_ha ? 2 : 1)
+  enable_ha = var.enable_ha
   instance_type  = var.hana_instance_type
 
   is_scale_out = var.hana_is_scale_out
@@ -51,6 +52,7 @@ module hana_host {
 
   # KMS Key for EBS Volumes Encryption
   kms_key_arn = var.kms_key_arn
+  ssh_key     = var.ssh_key
 
   # Networking
   vpc_id = var.vpc_id
@@ -63,8 +65,11 @@ module hana_host {
   customer_cidr_blocks = var.customer_cidr_blocks
   # The default security group to be added
   customer_default_sg_id = var.customer_default_sg_id
+  # The default security group to be added
+  efs_security_group_id = module.sap_efs.security_group_id
 
   # Instance Role
+  default_instance_role = var.default_instance_role
   iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
@@ -86,6 +91,7 @@ module sap_ascs_host {
   # General
   ami_id      = var.ami_id
   kms_key_arn = var.kms_key_arn
+  ssh_key     = var.ssh_key
 
   # Networking
   vpc_id = var.vpc_id
@@ -99,6 +105,7 @@ module sap_ascs_host {
   efs_security_group_id = module.sap_efs.security_group_id
 
   # Instance Role
+  default_instance_role = var.default_instance_role
   iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
@@ -120,6 +127,7 @@ module sap_app_host {
   # General
   ami_id      = var.ami_id
   kms_key_arn = var.kms_key_arn
+  ssh_key     = var.ssh_key
 
   # Networking
   vpc_id = var.vpc_id
@@ -133,6 +141,7 @@ module sap_app_host {
   efs_security_group_id = module.sap_efs.security_group_id
 
   # Instance Role
+  default_instance_role = var.default_instance_role
   iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
