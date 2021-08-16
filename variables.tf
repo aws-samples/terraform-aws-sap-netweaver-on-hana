@@ -57,8 +57,9 @@ variable "subnet_ids" {
   type        = list(string)
 }
 variable "dns_zone_name" {
-  default = "(Optional) The name of Route53 Private DNS zone. If not provided - DNS record will not be created"
-  type    = string
+  description = "(Optional) The name of Route53 Private DNS zone. If not provided - DNS record will not be created"
+  default     = ""
+  type        = string
 }
 variable "customer_default_sg_id" {
   description = "(Optional) List of preexisting security groups to be attached to the instance. The required security groups are created automatically, this is just for mandatory default ones"
