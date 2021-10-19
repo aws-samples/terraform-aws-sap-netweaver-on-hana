@@ -102,3 +102,13 @@ resource "aws_security_group_rule" "sap_application_40002_in" {
   protocol                 = "tcp"
   cidr_blocks       = concat([data.aws_vpc.vpc.cidr_block], var.customer_cidr_blocks)
 }
+
+resource "aws_security_group_rule" "pacemaker_port" {
+  count                    = var.enabled ? 1 : 0
+  security_group_id        = aws_security_group.sap_application.*.id[0]
+  type                     = "ingress"
+  from_port                = "2224"
+  to_port                  = "2224"
+  protocol                 = "tcp"
+  cidr_blocks       = concat([data.aws_vpc.vpc.cidr_block], var.customer_cidr_blocks)
+}
