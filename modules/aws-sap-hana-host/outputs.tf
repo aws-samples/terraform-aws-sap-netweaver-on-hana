@@ -35,3 +35,7 @@ output "security_group_id" {
 output "instance_public_ips" {
   value = module.instance.instance_public_ips
 }
+
+output "overlay_ip" {
+  value = var.destination_cidr_block_for_overlay_ip
+}

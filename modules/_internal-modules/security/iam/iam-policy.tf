@@ -19,7 +19,7 @@
 resource "aws_iam_policy" "iam_policy" {
   count = var.enabled ? 1 : 0
 
-  name   = var.policy_name
-#  path   = "/${var.tags["application_code"]}/"
+  name = var.policy_name
+  #  path   = "/${var.tags["application_code"]}/"
   policy = var.policy
 }

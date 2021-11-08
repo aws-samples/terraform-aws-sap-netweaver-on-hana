@@ -16,7 +16,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-module sap_efs {
+module "sap_efs" {
   source  = "./modules/aws-sap-netweaver-efs"
   enabled = var.enabled
 
@@ -35,12 +35,12 @@ module sap_efs {
 }
 
 
-module hana_host {
+module "hana_host" {
   source = "./modules/aws-sap-hana-host"
 
   # Instance Count depending on the environment
   instance_count = var.hana_is_scale_out ? (var.enable_ha ? 2 * var.hana_scale_out_node_count : var.hana_scale_out_node_count) : (var.enable_ha ? 2 : 1)
-  enable_ha = var.enable_ha
+  enable_ha      = var.enable_ha
   instance_type  = var.hana_instance_type
 
   is_scale_out = var.hana_is_scale_out
@@ -70,7 +70,7 @@ module hana_host {
 
   # Instance Role
   default_instance_role = var.default_instance_role
-  iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
+  iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
   application_code = lower(var.application_code)
@@ -81,7 +81,7 @@ module hana_host {
   sid = var.sid
 }
 
-module sap_ascs_host {
+module "sap_ascs_host" {
   source  = "./modules/aws-sap-ascs-host"
   enabled = var.enabled
 
@@ -106,7 +106,7 @@ module sap_ascs_host {
 
   # Instance Role
   default_instance_role = var.default_instance_role
-  iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
+  iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
   application_code = lower(var.application_code)
@@ -117,7 +117,7 @@ module sap_ascs_host {
 }
 
 
-module sap_app_host {
+module "sap_app_host" {
   source  = "./modules/aws-sap-app-host"
   enabled = var.enabled
 
@@ -142,7 +142,7 @@ module sap_app_host {
 
   # Instance Role
   default_instance_role = var.default_instance_role
-  iam_instance_role = var.default_instance_role ? "" : var.iam_instance_role
+  iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
   application_code = lower(var.application_code)

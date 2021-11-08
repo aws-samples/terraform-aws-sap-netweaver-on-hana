@@ -16,5 +16,5 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 data "template_file" "hana_userdata" {
-  template = "${file("${path.cwd}/userdata.sh")}"
+  template = file("${path.cwd}/userdata.sh")
 }

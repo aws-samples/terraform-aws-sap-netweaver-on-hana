@@ -29,7 +29,7 @@ variable "binaries_folder" {
 
 #Infrastructure Details
 variable "hana_instance_ids" {
-  type = list
+  type = list(any)
 }
 
 

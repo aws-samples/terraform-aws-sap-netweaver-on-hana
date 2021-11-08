@@ -18,11 +18,11 @@
 
 # base alb vars
 variable "subnets" {
-  type = "list"
+  type = list(string)
 }
 
 variable "security_groups" {
-  type = "list"
+  type = list(string)
 }
 
 variable "platform" {}
