@@ -25,6 +25,9 @@ output "hana_instance_private_ip" {
 output "hana_instance_overlay_ip" {
   value = module.hana_host.overlay_ip
 }
+output "hana_overlay_ip_route_table_id" {
+  value = module.hana_host.overlay_route_table_id
+}
 
 output "app_instance_public_ips" {
   value = module.sap_app_host.instance_public_ips

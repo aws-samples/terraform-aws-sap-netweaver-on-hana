@@ -39,3 +39,7 @@ output "instance_public_ips" {
 output "overlay_ip" {
   value = var.destination_cidr_block_for_overlay_ip
 }
+
+output "overlay_route_table_id" {
+  value = data.aws_route_table.ha_route_table.id
+}
