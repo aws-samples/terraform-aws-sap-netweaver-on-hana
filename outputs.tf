@@ -22,7 +22,7 @@ output "hana_instance_public_ips" {
 output "hana_instance_private_ip" {
   value = module.hana_host.server_private_ip
 }
-output "hana_instance_overlay_ips" {
+output "hana_instance_overlay_ip" {
   value = module.hana_host.overlay_ip
 }
 
