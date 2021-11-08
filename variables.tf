@@ -69,6 +69,10 @@ variable "customer_cidr_blocks" {
   description = "(Optional) The CIDR blocks to allow end-user connectivity from"
   type        = list(string)
 }
+variable "destination_cidr_block_for_overlay_ip" {
+  default     = "192.168.10.10/32"
+  description = "(Optional when HA. Not used for single installation) The IP to add as an overlay IP on Route tables. Example: 192.168.10.10/32"
+}
 
 # Operation System
 variable "ami_id" {

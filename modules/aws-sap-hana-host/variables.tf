@@ -88,7 +88,6 @@ variable "destination_cidr_block_for_overlay_ip" {
   default     = "192.168.10.10/32"
   description = "(Required when HA) The IP to add as an overlay IP on Route tables. Example: 192.168.10.10/32"
 }
-
 variable "efs_security_group_id" {
   type        = string
   description = "(Optional) The security group for EFS file system to allow the mount. Required if EFS is used for /sapmnt"

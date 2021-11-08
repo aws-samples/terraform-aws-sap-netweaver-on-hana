@@ -67,6 +67,8 @@ module "hana_host" {
   customer_default_sg_id = var.customer_default_sg_id
   # The default security group to be added
   efs_security_group_id = module.sap_efs.security_group_id
+  # CIDR block for the overlay IP for Hana installation when HA is enabled
+  destination_cidr_block_for_overlay_ip = var.destination_cidr_block_for_overlay_ip
 
   # Instance Role
   default_instance_role = var.default_instance_role
