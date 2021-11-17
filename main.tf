@@ -88,7 +88,7 @@ module "sap_ascs_host" {
   enabled = var.enabled
 
   # Instance Count depending on the environment
-  instance_count = var.enable_ha ? 2 : 1
+  instance_count = 1
 
   # General
   ami_id      = var.ami_id
@@ -114,6 +114,45 @@ module "sap_ascs_host" {
   application_code = lower(var.application_code)
   environment      = lower(var.environment_type)
   application_name = lower(var.application_name)
+  application_component = "ASCS"
+
+  # SAP
+  sid = var.sid
+}
+
+module "sap_ers_host" {
+  source  = "./modules/aws-sap-ascs-host"
+  enabled = var.enabled && var.enable_ha ? true : false
+
+  # Instance Count depending on the environment
+  instance_count = 1
+
+  # General
+  ami_id      = var.ami_id
+  kms_key_arn = var.kms_key_arn
+  ssh_key     = var.ssh_key
+
+  # Networking
+  vpc_id = var.vpc_id
+  # The list of subnets to deploy the instances
+  subnet_ids = var.subnet_ids
+  # The Route53 private Zone name to create the host entry
+  dns_zone_name = var.dns_zone_name
+  # The CIDR block for the onPremise Network
+  customer_default_sg_ids = var.customer_default_sg_id
+  # The default security group to be added
+  efs_security_group_id = module.sap_efs.security_group_id
+
+  # Instance Role
+  default_instance_role = var.default_instance_role
+  iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
+
+  # Tags
+  application_code = lower(var.application_code)
+  environment      = lower(var.environment_type)
+  application_name = lower(var.application_name)
+  application_component = "ERS"
+
   # SAP
   sid = var.sid
 }

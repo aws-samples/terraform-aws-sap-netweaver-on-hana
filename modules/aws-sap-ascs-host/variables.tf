@@ -122,3 +122,8 @@ variable "application_name" {
   description = "(Required) The name of the application being provisioned, ex. 'datamart', 'ecc', 's4hana', etc."
   type        = string
 }
+variable "application_component" {
+  description = "(Optional) The application component for this instance. Ex: ASCS or ERS"
+  default     = "ASCS"
+  type = string
+}
