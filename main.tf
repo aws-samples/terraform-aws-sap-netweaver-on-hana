@@ -26,7 +26,7 @@ module "sap_efs" {
 
   subnet_ids         = var.subnet_ids
   vpc_id             = var.vpc_id
-  security_group_ids = concat(module.sap_ascs_host.security_group_id, module.sap_app_host.security_group_id, module.hana_host.security_group_id)
+  security_group_ids = concat(module.sap_ascs_host.security_group_id, module.sap_app_host.security_group_id, module.hana_host.security_group_id, module.ers_host.security_group_id)
   name               = var.efs_name
 
   application_code = lower(var.application_code)
