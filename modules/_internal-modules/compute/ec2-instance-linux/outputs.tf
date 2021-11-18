@@ -36,6 +36,10 @@ output "instance_public_ips" {
   value = aws_instance.linux-server.*.public_ip
 }
 
+output "network_interface_id" {
+  value = aws_instance.linux-server.*.primary_network_interface_id
+}
+
 // output "instance_profile" {
 //   value = length(aws_iam_instance_profile.ec2_instance_profile.*.name) > 0 ? aws_iam_instance_profile.ec2_instance_profile.*.name[0] : ""
 // }

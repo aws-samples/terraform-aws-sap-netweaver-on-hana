@@ -17,7 +17,7 @@
  */
 
 locals {
-  hostnames = "${formatlist("%s", null_resource.hostnames_list.*.triggers.hostname)}"
+  hostnames = formatlist("%s", null_resource.hostnames_list.*.triggers.hostname)
 }
 
 resource "null_resource" "hostnames_list" {
@@ -28,7 +28,7 @@ resource "null_resource" "hostnames_list" {
   }
 }
 
-module instance {
+module "instance" {
   source = "../_internal-modules/compute/ec2-instance-linux"
 
   enabled        = var.enabled

@@ -21,8 +21,8 @@ locals {
   hana_data_disks_number = var.hana_disks_data_storage_type == "gp2" ? var.hana_disks_data_gp2[var.instance_type].disk_nb : (var.hana_disks_data_gp2 == "io1" ? var.hana_disks_data_gp2[var.instance_type].disk_nb : 0)
   hana_log_size          = var.hana_disks_logs_storage_type == "gp2" ? var.hana_disks_logs_gp2[var.instance_type].disk_size : (var.hana_disks_logs_storage_type == "io1" ? var.hana_disks_logs_io1[var.instance_type].disk_size : 0)
   hana_log_disks_number  = var.hana_disks_logs_storage_type == "gp2" ? var.hana_disks_logs_gp2[var.instance_type].disk_nb : (var.hana_disks_logs_storage_type == "io1" ? var.hana_disks_logs_io1[var.instance_type].disk_nb : 0)
-  data_volume_names      = "${formatlist("%s", null_resource.data_volume_names_list.*.triggers.data_volume_name)}"
-  log_volume_names       = "${formatlist("%s", null_resource.log_volume_names_list.*.triggers.log_volume_name)}"
+  data_volume_names      = formatlist("%s", null_resource.data_volume_names_list.*.triggers.data_volume_name)
+  log_volume_names       = formatlist("%s", null_resource.log_volume_names_list.*.triggers.log_volume_name)
 }
 
 resource "null_resource" "data_volume_names_list" {
@@ -51,7 +51,7 @@ resource "aws_ebs_volume" "xvdo_volume" {
   lifecycle {
     ignore_changes = [kms_key_id, encrypted]
   }
-  count = var.enabled ? (! var.is_scale_out ? var.instance_count : 0) : 0
+  count = var.enabled ? (!var.is_scale_out ? var.instance_count : 0) : 0
   tags = merge(
     module.tags.values,
   tomap({ "Name" = "${module.tags.values["Name"]}-hana_shared" }))

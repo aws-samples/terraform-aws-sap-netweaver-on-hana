@@ -17,7 +17,7 @@
  */
 
 locals {
-  hostnames = "${formatlist("%s", null_resource.hostnames_list.*.triggers.hostname)}"
+  hostnames = formatlist("%s", null_resource.hostnames_list.*.triggers.hostname)
 }
 
 resource "null_resource" "hostnames_list" {

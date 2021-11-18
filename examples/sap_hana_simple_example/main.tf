@@ -15,11 +15,11 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- 
+
 locals {
   binaries_bucket_name = ""
 }
-module hana_host {
+module "hana_host" {
   source                 = "../../modules/aws-sap-hana-host"
   instance_count         = 1
   user_data              = data.template_file.hana_userdata.rendered
@@ -42,7 +42,7 @@ module hana_host {
   sid                    = var.sid
 }
 
-module sap_deployment {
+module "sap_deployment" {
   source               = "../../modules/sap-deploymentscripts"
   binaries_bucket_name = local.binaries_bucket_name
   binaries_key_arn     = var.kms_key_arn

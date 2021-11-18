@@ -16,33 +16,14 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-output "hana_instance_public_ips" {
-  value = module.hana_host.instance_public_ips
-}
-output "hana_instance_private_ip" {
-  value = module.hana_host.server_private_ip
-}
-output "hana_instance_overlay_ip" {
-  value = module.hana_host.overlay_ip
-}
-output "hana_overlay_ip_route_table_id" {
-  value = module.hana_host.overlay_route_table_id
+data "aws_route_table" "ha_route_table" {
+  vpc_id = data.aws_vpc.vpc.id
 }
 
-output "app_instance_public_ips" {
-  value = module.sap_app_host.instance_public_ips
-}
-output "app_instance_private_ip" {
-  value = module.sap_app_host.server_private_ip
-}
+resource "aws_route" "ha_route" {
+  count = var.enable_ha ? 1 : 0
 
-output "ascs_instance_public_ips" {
-  value = module.sap_ascs_host.instance_public_ips
-}
-output "ascs_instance_private_ip" {
-  value = module.sap_ascs_host.server_private_ip
-}
-
-output "app_instance_efs_ids" {
-  value = module.sap_efs.efs_file_system_id
+  route_table_id         = data.aws_route_table.ha_route_table.id
+  destination_cidr_block = var.destination_cidr_block_for_overlay_ip
+  network_interface_id   = module.instance.network_interface_id[0]
 }
