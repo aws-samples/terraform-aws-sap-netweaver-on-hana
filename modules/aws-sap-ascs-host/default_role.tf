@@ -42,6 +42,45 @@ data "aws_iam_policy_document" "instance_policy" {
     ]
     resources = [var.kms_key_arn]
   }
+
+  # Statement 1 for Stonith when HA installations
+  statement {
+    actions = [
+      "ec2:DescribeInstances",
+      "ec2:DescribeInstanceAttribute",
+      "ec2:DescribeTags"
+    ]
+    resources = ["*"]
+  }
+
+  # Statement 2 for Stonith when HA installations
+  statement {
+    actions = [
+      "ec2:ModifyInstanceAttribute",
+      "ec2:RebootInstances",
+      "ec2:StartInstances",
+      "ec2:StopInstances"
+    ]
+    resources = ["arn:aws:ec2:*:*:instance/*"]
+  }
+
+  # Statement 1 for Overlay IP when HA installations
+  statement {
+    actions = [
+      "ec2:ReplaceRoute",
+      "ec2:DescribeRouteTables"
+    ]
+    resources = ["arn:aws:ec2:*:*:route-table/*"]
+  }
+
+  # Statement 2 for Overlay IP when HA installations
+  statement {
+    actions = [
+      "ec2:ReplaceRoute",
+      "ec2:DescribeRouteTables"
+    ]
+    resources = ["*"]
+  }
 }
 
 module "default_instance_role" {
