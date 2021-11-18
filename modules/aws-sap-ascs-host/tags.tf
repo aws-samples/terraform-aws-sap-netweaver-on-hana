@@ -21,6 +21,6 @@ module "tags" {
   environment           = var.environment
   application_code      = var.application_code
   application_name      = var.application_name
-  application_component = "ascs"
+  application_component = var.application_component
   sid                   = var.sid
 }

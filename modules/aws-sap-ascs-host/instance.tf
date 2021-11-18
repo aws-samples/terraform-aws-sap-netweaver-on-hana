@@ -24,7 +24,7 @@ resource "null_resource" "hostnames_list" {
   count = var.enabled ? var.instance_count : 0
 
   triggers = {
-    hostname = count.index == 0 ? "a${lower(var.application_code)}${lower(var.sid)}pascs" : "a${lower(var.application_code)}${lower(var.sid)}ascs${count.index + 1}"
+    hostname = count.index == 0 ? "a${lower(var.application_code)}${lower(var.sid)}p${lower(var.application_component)}" : "a${lower(var.application_code)}${lower(var.application_component)}${count.index + 1}"
   }
 }
 
