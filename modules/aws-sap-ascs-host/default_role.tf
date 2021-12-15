@@ -17,8 +17,8 @@
  */
 
 locals {
-  instance_policy_name = "${lower(var.application_code)}-${lower(var.application_name)}-sap_ascs_default_policy-${lower(var.environment)}"
-  instance_role_name   = "${lower(var.application_code)}-${lower(var.application_name)}-sap_ascs_default_role-${lower(var.environment)}"
+  instance_policy_name = "${lower(var.application_code)}-${lower(var.application_name)}-sap_${var.application_component}_default_policy-${lower(var.environment)}"
+  instance_role_name   = "${lower(var.application_code)}-${lower(var.application_name)}-sap_${var.application_component}_default_role-${lower(var.environment)}"
 }
 
 data "aws_iam_policy_document" "instance_trust" {
@@ -31,83 +31,6 @@ data "aws_iam_policy_document" "instance_trust" {
   }
 }
 data "aws_iam_policy_document" "instance_policy" {
-  //   statement {
-  //     effect = "Allow"
-  //     actions = [
-  //       "s3:ListBucket",
-  //       "s3:GetObject",
-  //       "kms:Decrypt"
-  //     ]
-  //   resources = [
-  //       var.binaries_bucket_arn,
-  //       "${var.binaries_bucket_arn}/*"
-  //     ]
-  //   }
-  //   statement {
-  //     effect = "Allow"
-  //     actions = [
-  //       "ssm:SendCommand",
-  //       "ssm:DescribeAutomationExecutions",
-  //       "ssm:DescribeAutomationStepExecutions",
-  //       "ssm:GetAutomationExecution",
-  //       "ssm:StartAutomationExecution",
-  //       "ssm:StopAutomationExecution",
-  //       "ssm:SendAutomationSignal"
-  //     ]
-  //     resources = [
-  //       "arn:aws:ssm:*:*:automation-definition/*:*",
-  //       "arn:aws:ssm:*:*:document/*"
-  //     ]
-  # condition {
-  #   test     = "StringLike"
-  #   variable = "ssm:resourceTag/appCode"
-  #   values   = [var.tags["appCode"]]
-  # }
-  //   }
-  //   statement {
-  //     effect = "Allow"
-  //     actions = [
-  //       "ssm:SendCommand",
-  //       "ssm:DescribeAutomationExecutions",
-  //       "ssm:DescribeAutomationStepExecutions",
-  //       "ssm:GetAutomationExecution",
-  //       "ssm:StartAutomationExecution",
-  //       "ssm:StopAutomationExecution",
-  //       "ssm:SendAutomationSignal",
-  //       "ssm:UpdateInstanceInformation"
-  //     ]
-  //     resources = [
-  //       "arn:aws:ec2:*:*:instance/*",
-  //     ]
-  # condition {
-  #   test     = "StringLike"
-  #   variable = "ssm:resourceTag/appCode"
-  #   values   = [var.tags["appCode"]]
-  # }
-  //   }
-  //   statement {
-  //       actions = [
-  //         "ssm:ListCommands",
-  //         "ssm:ListCommandInvocations",
-  //         "ssm:GetDocument",
-  //         "ssm:ListDocuments",
-  //         "ssm:PutParameter"
-  //       ]
-  //       resources = [
-  //           "*"
-  //       ]
-  //   }
-  //   statement{
-  //     actions = [
-  //       "s3:DeleteObject", 
-  //       "s3:GetObject", 
-  //       "s3:PutObject",
-  //       "s3:ListBucket"
-  //     ]
-  //       resources = [
-  //         "arn:aws:s3:::${var.application_code}*/*"
-  //       ]
-  //   }
   #Statements for KMS
   statement {
     actions = [
@@ -118,6 +41,45 @@ data "aws_iam_policy_document" "instance_policy" {
       "kms:DescribeKey"
     ]
     resources = [var.kms_key_arn]
+  }
+
+  # Statement 1 for Stonith when HA installations
+  statement {
+    actions = [
+      "ec2:DescribeInstances",
+      "ec2:DescribeInstanceAttribute",
+      "ec2:DescribeTags"
+    ]
+    resources = ["*"]
+  }
+
+  # Statement 2 for Stonith when HA installations
+  statement {
+    actions = [
+      "ec2:ModifyInstanceAttribute",
+      "ec2:RebootInstances",
+      "ec2:StartInstances",
+      "ec2:StopInstances"
+    ]
+    resources = ["arn:aws:ec2:*:*:instance/*"]
+  }
+
+  # Statement 1 for Overlay IP when HA installations
+  statement {
+    actions = [
+      "ec2:ReplaceRoute",
+      "ec2:DescribeRouteTables"
+    ]
+    resources = ["arn:aws:ec2:*:*:route-table/*"]
+  }
+
+  # Statement 2 for Overlay IP when HA installations
+  statement {
+    actions = [
+      "ec2:ReplaceRoute",
+      "ec2:DescribeRouteTables"
+    ]
+    resources = ["*"]
   }
 }
 

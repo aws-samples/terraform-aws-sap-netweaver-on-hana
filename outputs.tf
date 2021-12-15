@@ -43,6 +43,14 @@ output "ascs_instance_private_ip" {
   value = module.sap_ascs_host.server_private_ip
 }
 
+output "ers_instance_public_ips" {
+  value = module.sap_ers_host.instance_public_ips
+}
+output "ers_instance_private_ip" {
+  value = module.sap_ers_host.server_private_ip
+}
+
+
 output "app_instance_efs_ids" {
   value = module.sap_efs.efs_file_system_id
 }
