@@ -36,3 +36,5 @@ variable "table_attributes" {
 }
 
 variable "tags" {}
+
+variable "kms_key_arn" {}
