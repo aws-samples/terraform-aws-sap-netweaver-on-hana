@@ -22,7 +22,7 @@ resource "aws_lb_listener" "http_listener" {
   protocol          = "HTTPS"
   # port              = "80"
   # protocol          = "HTTP"
-  ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
+  ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
 
   default_action {
     target_group_arn = aws_lb_target_group.alb_target_group.arn

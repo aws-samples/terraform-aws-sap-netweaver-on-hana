@@ -37,5 +37,5 @@ output "instance_public_ips" {
 }
 
 output "app_security_group_id" {
-  value = aws_security_group.instance.*.id[0]
+  value = aws_security_group.sap_application.*.id[0]
 }

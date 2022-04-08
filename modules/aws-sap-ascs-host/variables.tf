@@ -125,9 +125,14 @@ variable "application_name" {
 variable "application_component" {
   description = "(Optional) The application component for this instance. Ex: ASCS or ERS"
   default     = "ASCS"
-  type = string
+  type        = string
 }
-variable "ascs_security_group_id" {
-  description = "(Optional) Security group ID for ASCS instance when installing with HA"
-  default = ""
+
+variable "enable_ha_communication" {
+  description = "(Optional) Flag to enable HA communication between ASCS and ERS"
+  default     = false
+}
+variable "app_security_group_id" {
+  description = "(Optional) Security group ID for ERS instance to allow connections from ASCS instance when installing with HA"
+  default     = ""
 }
