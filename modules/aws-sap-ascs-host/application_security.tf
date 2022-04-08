@@ -268,7 +268,7 @@ resource "aws_security_group_rule" "instance_allow_pacemaker" {
   cidr_blocks       = [data.aws_vpc.vpc.cidr_block]
 }
 
-resource "aws_security_group_rule" "instance_allow_pacemaker" {
+resource "aws_security_group_rule" "instance_allow_pacemaker_egress" {
   count                    = var.enable_ha_communication ? 1 : 0
   security_group_id        = aws_security_group.instance.*.id[0]
   type                     = "egress"
