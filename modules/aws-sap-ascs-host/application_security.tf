@@ -257,3 +257,23 @@ resource "aws_security_group_rule" "sap_application_tcp2049_in" {
   protocol                 = "tcp"
   source_security_group_id = var.efs_security_group_id != "" ? var.efs_security_group_id : aws_security_group.sap_application.*.id[0]
 }
+
+resource "aws_security_group_rule" "instance_allow_pacemaker" {
+  count                    = var.enable_ha_communication ? 1 : 0
+  security_group_id        = aws_security_group.instance.*.id[0]
+  type                     = "ingress"
+  from_port                = "2224"
+  to_port                  = "2224"
+  protocol                 = "tcp"
+  cidr_blocks       = [data.aws_vpc.vpc.cidr_block]
+}
+
+resource "aws_security_group_rule" "instance_allow_pacemaker" {
+  count                    = var.enable_ha_communication ? 1 : 0
+  security_group_id        = aws_security_group.instance.*.id[0]
+  type                     = "egress"
+  from_port                = "2224"
+  to_port                  = "2224"
+  protocol                 = "tcp"
+  cidr_blocks       = [data.aws_vpc.vpc.cidr_block]
+}
