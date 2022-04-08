@@ -45,9 +45,4 @@ resource "aws_instance" "linux-server" {
     encrypted   = true
     kms_key_id  = var.kms_key_arn
   }
-
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
-  }
 }
