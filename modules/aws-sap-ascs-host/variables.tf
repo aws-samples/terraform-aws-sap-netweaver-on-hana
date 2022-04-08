@@ -127,3 +127,7 @@ variable "application_component" {
   default     = "ASCS"
   type = string
 }
+variable "ascs_security_group_id" {
+  description = "(Optional) Security group ID for ASCS instance when installing with HA"
+  default = ""
+}

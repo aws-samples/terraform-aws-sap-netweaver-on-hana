@@ -143,6 +143,9 @@ module "sap_ers_host" {
   # The default security group to be added
   efs_security_group_id = module.sap_efs.security_group_id
 
+  # ASCS Security group to allow communication for HA
+  ascs_security_group_id = module.sap_ascs_host.app_security_group_id
+
   # Instance Role
   default_instance_role = var.default_instance_role
   iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
