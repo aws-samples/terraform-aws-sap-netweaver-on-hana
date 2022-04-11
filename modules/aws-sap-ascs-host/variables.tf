@@ -125,5 +125,10 @@ variable "application_name" {
 variable "application_component" {
   description = "(Optional) The application component for this instance. Ex: ASCS or ERS"
   default     = "ASCS"
-  type = string
+  type        = string
+}
+
+variable "enable_ha_communication" {
+  description = "(Optional) Flag to enable HA communication between ASCS and ERS"
+  default     = false
 }

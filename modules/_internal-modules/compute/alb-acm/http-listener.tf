@@ -18,8 +18,11 @@
 
 resource "aws_lb_listener" "http_listener" {
   load_balancer_arn = aws_lb.alb.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = "443"
+  protocol          = "HTTPS"
+  # port              = "80"
+  # protocol          = "HTTP"
+  ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
 
   default_action {
     target_group_arn = aws_lb_target_group.alb_target_group.arn

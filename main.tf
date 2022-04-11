@@ -111,9 +111,9 @@ module "sap_ascs_host" {
   iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
-  application_code = lower(var.application_code)
-  environment      = lower(var.environment_type)
-  application_name = lower(var.application_name)
+  application_code      = lower(var.application_code)
+  environment           = lower(var.environment_type)
+  application_name      = lower(var.application_name)
   application_component = "ASCS"
 
   # SAP
@@ -143,18 +143,23 @@ module "sap_ers_host" {
   # The default security group to be added
   efs_security_group_id = module.sap_efs.security_group_id
 
+  # ASCS Security group to allow communication for HA
+  enable_ha_communication = var.enable_ha ? true : false
+  
   # Instance Role
   default_instance_role = var.default_instance_role
   iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
 
   # Tags
-  application_code = lower(var.application_code)
-  environment      = lower(var.environment_type)
-  application_name = lower(var.application_name)
+  application_code      = lower(var.application_code)
+  environment           = lower(var.environment_type)
+  application_name      = lower(var.application_name)
   application_component = "ERS"
 
   # SAP
   sid = var.sid
+
+  depends_on = [module.sap_ascs_host]
 }
 
 
