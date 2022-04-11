@@ -132,7 +132,3 @@ variable "enable_ha_communication" {
   description = "(Optional) Flag to enable HA communication between ASCS and ERS"
   default     = false
 }
-variable "app_security_group_id" {
-  description = "(Optional) Security group ID for ERS instance to allow connections from ASCS instance when installing with HA"
-  default     = ""
-}

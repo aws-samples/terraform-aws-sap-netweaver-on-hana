@@ -144,9 +144,8 @@ module "sap_ers_host" {
   efs_security_group_id = module.sap_efs.security_group_id
 
   # ASCS Security group to allow communication for HA
-  enable_ha_communication = true
-  app_security_group_id   = module.sap_ascs_host.app_security_group_id
-
+  enable_ha_communication = var.enable_ha ? true : false
+  
   # Instance Role
   default_instance_role = var.default_instance_role
   iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
