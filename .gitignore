@@ -11,3 +11,4 @@ tfout.log
 #Misc
 .DS_Store
 variables.tfvars
+how_to_run.sh
