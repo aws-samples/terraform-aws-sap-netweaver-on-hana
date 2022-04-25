@@ -116,10 +116,10 @@ resource "aws_security_group_rule" "pacemaker_port" {
 resource "aws_security_group_rule" "all_traffic_between_hana" {
   count = var.enabled ? 1 : 0
 
-  security_group_id     = aws_security_group.sap_application.*.id[0]
-  type                  = "ingress"
-  from_port             = "0"
-  to_port               = "0"
-  protocol              = "tcp"
-  source_security_group = aws_security_group.sap_application.*.id[0]
+  security_group_id = aws_security_group.sap_application.*.id[0]
+  type              = "ingress"
+  from_port         = "0"
+  to_port           = "0"
+  protocol          = "tcp"
+  security_groups   = [aws_security_group.sap_application.*.id[0]]
 }
