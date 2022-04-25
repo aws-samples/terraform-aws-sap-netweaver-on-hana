@@ -145,7 +145,7 @@ module "sap_ers_host" {
 
   # ASCS Security group to allow communication for HA
   enable_ha_communication = var.enable_ha ? true : false
-  
+
   # Instance Role
   default_instance_role = var.default_instance_role
   iam_instance_role     = var.default_instance_role ? "" : var.iam_instance_role
