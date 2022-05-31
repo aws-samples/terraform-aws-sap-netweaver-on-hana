@@ -119,7 +119,7 @@ resource "aws_security_group_rule" "all_traffic_between_hana" {
   security_group_id        = aws_security_group.sap_application.*.id[0]
   type                     = "ingress"
   from_port                = "0"
-  to_port                  = "0"
+  to_port                  = "65535"
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.sap_application.*.id[0]
   description              = "Allow all communication between HANA nodes for HA"
