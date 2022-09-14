@@ -15,21 +15,21 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-aws_region             = "us-east-2"
+aws_region             = ""
 enabled                = true
 hana_instance_type     = ""
 hana_is_scale_out      = false
-ami_id                 = "ami-0f052119b3c7e61d1"
+ami_id                 = ""
 default_instance_role  = true
 kms_key_arn            = ""
-vpc_id                 = "vpc-0cd7361c1247f7a4c"
+vpc_id                 = ""
 subnet_ids             = [""]
 dns_zone_name          = ""
 customer_cidr_blocks   = [""]
 customer_default_sg_id = ""
-sid                    = "HAN"
+sid                    = ""
 iam_instance_role      = ""
 application_code       = ""
 application_name       = ""
 environment_type       = ""
-ssh_key                = "HANA_DEP_2"
+ssh_key                = ""
