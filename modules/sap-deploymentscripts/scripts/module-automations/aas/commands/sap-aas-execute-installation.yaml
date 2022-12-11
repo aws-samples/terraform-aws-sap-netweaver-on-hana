@@ -1,0 +1,111 @@
+---
+schemaVersion: "2.2"
+description: "Execute installation"
+parameters:
+  ProductId:
+    type: String
+    description: "(Required) The id of the product to be installed"
+    default: ''
+  Sid:
+    type: String
+    description: "(Required) The system id of SAP system"
+    default: ''
+  MasterPassword:
+    type: String
+    description: '(Required) SAP NetWeaver Master Password'
+    default: ''
+  IniFile:
+    type: String
+    description: '(Optional) Path to INI file'
+    default: '/sapmnt/software/aas.params'
+  AscsHostname:
+    type: String
+    description: '(Required) The hostname of HANA DB Host'
+    default: ''
+  DnsPrivateZoneName:
+    type: String
+    description: "(Optional) DNS Zone name to specify FQDN in hosts"
+    default: '${DNSPrivateZoneName}'
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Set_services_file"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - # Copy the service file from mounted /sapmnt EFS
+    - cat /sapmnt/services >> /etc/services
+- action: "aws:runShellScript"
+  name: "Prepare_ascs_ini"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - AAS_INI_FILE={{ IniFile }}
+    - SID=`echo "{{Sid}}" | tr a-z A-Z`
+    - SIDadmUID=1003
+    - SAPsysGID=1004
+    - SW_TARGET=/sapmnt/software
+    - SAPInstanceNum=00
+    - HOSTED_ZONE={{ DnsPrivateZoneName }}
+    - LHOSTNAME=`hostname`
+    - FQDN=$${LHOSTNAME}.$${HOSTED_ZONE}
+    - ASCS_HOSTNAME={{ AscsHostname }}
+    - SAPMasterPassword={{ MasterPassword }}
+    - SID=`echo {{ Sid }} | tr '[:lower:]' '[:upper:]'}`
+    - SAP_SCHEMA_NAME=SAPHANADB
+    - #set the password from the SSM parameter store
+    - sed -i  "/NW_GetMasterPassword.masterPwd/ c\NW_GetMasterPassword.masterPwd = {{ MasterPassword }}" $AAS_INI_FILE
+    - sed -i  "/storageBasedCopy.hdb.systemPassword/ c\storageBasedCopy.hdb.systemPassword = {{ MasterPassword }}" $AAS_INI_FILE
+    - sed -i  "/storageBasedCopy.abapSchemaPassword/ c\storageBasedCopy.abapSchemaPassword = {{ MasterPassword }}" $AAS_INI_FILE
+    - sed -i  "/HDB_Schema_Check_Dialogs.schemaPassword/ c\HDB_Schema_Check_Dialogs.schemaPassword = {{ MasterPassword }}" $AAS_INI_FILE
+    - sed -i  "/nwUsers.sidadmPassword/ c\nwUsers.sidadmPassword = {{ MasterPassword }}" $AAS_INI_FILE
+    - sed -i  "/hostAgent.sapAdmPassword/ c\hostAgent.sapAdmPassword = {{ MasterPassword }}" $AAS_INI_FILE
+    - sed -i  "/NW_HDB_getDBInfo.systemDbPassword/ c\NW_HDB_getDBInfo.systemDbPassword = {{ MasterPassword }}" $AAS_INI_FILE
+    - #set the profile directory
+    - sed -i  "/NW_readProfileDir.profileDir/ c\NW_readProfileDir.profileDir = /sapmnt/$${SID}/profile" $AAS_INI_FILE
+    - #set the Schema 
+    - sed -i  "/HDB_Schema_Check_Dialogs.schemaName/ c\HDB_Schema_Check_Dialogs.schemaName = $${SAP_SCHEMA_NAME}" $AAS_INI_FILE
+    - #set the UID and GID
+    - sed -i  "/nwUsers.sidAdmUID/ c\nwUsers.sidAdmUID = $${SIDadmUID}" $AAS_INI_FILE
+    - sed -i  "/nwUsers.sapsysGID/ c\nwUsers.sapsysGID = $${SAPsysGID}" $AAS_INI_FILE
+    - #set the CD location based on $SW_TARGET
+    - sed -i  "/archives.downloadBasket/ c\archives.downloadBasket = $${SW_TARGET}/s4-1809" $AAS_INI_FILE
+    - sed -i  "/NW_getFQDN.FQDN/ c\NW_getFQDN.FQDN = $${HOSTED_ZONE}" $AAS_INI_FILE
+    - sed -i  "/NW_CI_Instance.ascsVirtualHostname/ c\NW_CI_Instance.ascsVirtualHostname = $${HOSTNAME}" $AAS_INI_FILE
+    - sed -i  "/storageBasedCopy.hdb.instanceNumber/ c\storageBasedCopy.hdb.instanceNumber = $${SAPInstanceNum}" $AAS_INI_FILE
+    - sed -i  "/NW_AS.instanceNumber/ c\NW_AS.instanceNumber = $${SAPInstanceNum}" $AAS_INI_FILE
+    - sed -i  "/NW_DI_Instance.virtualHostname/ c\NW_DI_Instance.virtualHostname = $${HOSTNAME}" $AAS_INI_FILE
+    - echo '`date` Prepared the Ini File:...' | tee -a $SSM_LOG_FILE
+- action: "aws:runShellScript"
+  name: "Execute_installation"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo '`date` Starting the Installation process...' | tee -a $SSM_LOG_FILE
+    - SYSTEMNUMBER=00
+    - SAPAliasName=`hostname`
+    - chmod 755 /sapmnt/software/sapinst/sapinst
+    - cd /sapmnt/software/sapinst
+    - ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ IniFile }} SAPINST_EXECUTE_PRODUCT_ID={{ProductId}} SAPINST_USE_HOSTNAME=$${SAPAliasName} SAPINST_SKIP_DIALOGS="true" SAPINST_START_GUISERVER=false | tee -a $SSM_LOG_FILE
+- action: "aws:runShellScript"
+  name: "Validate_Installation"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - sid=`echo {{ Sid }} | tr '[:upper:]' '[:lower:]'}`
+    - SID=`echo {{ Sid }} | tr '[:lower:]' '[:upper:]'}`
+    - HOSTNAME=`hostname`
+    - SIDADM=$${sid}adm
+    - chown -R $${SIDADM}:sapsys /usr/sap/trans
+    - su - $SIDADM -c "stopsap $HOSTNAME" | tee -a $SSM_LOG_FILE
+    - su - $SIDADM -c "startsap $HOSTNAME" | tee -a $SSM_LOG_FILE
+    - sleep 15
+    - _SAP_UP=$(netstat -an | grep 3200 | grep tcp | grep LISTEN | wc -l )
+    - echo "This is the value of SAP_UP - $_SAP_UP" | tee -a $SSM_LOG_FILE
+    - if [ "$_SAP_UP" -eq 1 ]
+    - then
+    -   echo "$(date) __ done installing AAS." | tee -a $SSM_LOG_FILE
+    -   exit 0
+    - else 
+    -   echo "$(date) __ Additional application server could not be installed successfully. Fix the issue and rerun the automation" | tee -a $SSM_LOG_FILE
+    -   exit 1
+    - fi

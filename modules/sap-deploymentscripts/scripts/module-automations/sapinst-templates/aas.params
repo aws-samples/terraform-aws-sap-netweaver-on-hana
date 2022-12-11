@@ -1,0 +1,125 @@
+####################################################################################################################################################################################################################################
+#                                                                                                                                                                                                                                  #
+#                                                                                                                                                                                                                                  #
+####################################################################################################################################################################################################################################
+
+NW_GetSidNoProfiles.unicode = true
+NW_getUnicode.isUnicode = true
+
+# Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
+DiagnosticsAgent.dasidAdmPassword = 
+
+# Windows domain in which the Diagnostics Agent users must be created.
+# The property is Microsoft Windows only. This is an optional 
+DiagnosticsAgent.domain = 
+
+# Password for the Diagnostics Agent specific SAPService<DASID> user. Provided value may be encoded.
+# The property is Microsoft Windows only.
+DiagnosticsAgent.sapServiceDASIDPassword = 
+
+# Should SWPM drop the schema if it exists?
+HDB_Schema_Check_Dialogs.dropSchema = false
+
+# Name of the Database Schema.
+HDB_Schema_Check_Dialogs.schemaName = SAPABAP1
+
+# Password of the Database Schema.
+HDB_Schema_Check_Dialogs.schemaPassword =  
+
+# Should SWPM validate the schema name? Schema name must only contain numbers and capital letters; must not start with '_' , cannot be 'SYS' or 'SYSTEM' etc.
+HDB_Schema_Check_Dialogs.validateSchemaName = true
+
+# If set to true, an ms_acl_info file will be created that manages the hosts the Message Server accepts connections from
+MessageServer.configureAclInfo = false
+
+# Application server instance number (leave empty for default)
+NW_AS.instanceNumber = 00
+
+# Skip unpacking any archive, e.g. SAPEXE.SAR. Do not set it to true if database client archives or the SAP kernel (adding an application server on a further operating system) must be unpacked.
+NW_AS.skipUnpacking = false
+
+# Start application server at the end of the installation (default is true)
+NW_AS.start = true
+
+# Virtual host name for application server instance (leave empty for default physical host name). The virtual host name must already be bound to a local network interface.
+NW_DI_Instance.virtualHostname = 
+
+# Master password
+NW_GetMasterPassword.masterPwd = 
+
+# Install HANA client into central directory or local. Values: SAPCPE,LOCAL
+NW_HDB_DBClient.clientPathStrategy = LOCAL
+
+# Password of user SYSTEM inside the SystemDB tenant in SAP HANA MultiDB Server.
+NW_HDB_getDBInfo.systemDbPassword = 
+
+# Name of the SystemDB tenant in SAP HANA MultiDB Server. Default value - SystemDB
+NW_HDB_getDBInfo.systemDbSid = SystemDB
+
+# Deprecated do not use!
+NW_SAPCrypto.SAPCryptoFile = 
+
+# For SAP internal use only
+NW_System.installSAPHostAgent = true
+
+SAPINST.CD.PACKAGE.KERNEL = /sapmnt/software/KERN_CD
+SAPINST.CD.PACKAGE.RDBMS = /sapmnt/software/HDB_CLNTCD
+SAPINST.CD.PACKAGE.LOAD = /sapmnt/software/EXP_CD
+
+
+# For SAP internal use only
+NW_adaptProfile.templateFiles = 
+
+# The FQDN of the system.
+NW_getFQDN.FQDN = 
+
+# Do we want to set the FQDN for the system?
+NW_getFQDN.setFQDN = true
+
+# Valid values are: SAP, STD, OBR, HCP, MDAThe loadtype chosen by the user.
+NW_getLoadType.loadType = SAP
+
+# Provide Netweaver profile directory
+NW_readProfileDir.profileDir = 
+
+# The folder that contains all archives that have been downloaded from SAP Service Marketplace that are supposed to be used in this procedure
+archives.downloadBasket = 
+
+# Should DBACOCKPIT user be created.
+hdb.create.dbacockpit.user = true
+
+# The domain of the hostagent user
+hostAgent.domain = 
+
+# Password for the SAP Host Agent specific sapadm user. Provided value may be encoded.
+hostAgent.sapAdmPassword = 
+
+# The Domain of all users of this System
+nwUsers.sapDomain = 
+
+# The password of the SAPServiceSID user
+nwUsers.sapServiceSIDPassword = 
+
+# The user id of the sapadm user
+nwUsers.sapadmUID = 
+
+# The group id of the sapsys group
+nwUsers.sapsysGID = 1010
+
+# The user id of the SIDadm user
+nwUsers.sidAdmUID = 1011
+
+# The password of the SIDadm user
+nwUsers.sidadmPassword = 
+
+# Parameter which is used to set the ABAP schema password via parameter file.
+storageBasedCopy.abapSchemaPassword = 
+
+# Instance number of SAP HANA Database Server.
+storageBasedCopy.hdb.instanceNumber = 00
+
+# Password of user SYSTEM inside the SAP HANA Database Server
+storageBasedCopy.hdb.systemPassword =  
+
+# Parameter which is used to set the SAP<SID>DB schema password via parameter file.
+storageBasedCopy.javaSchemaPassword = 

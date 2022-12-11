@@ -1,0 +1,99 @@
+---
+schemaVersion: "2.2"
+description: "Prepare and mount the disks for SAP apps"
+parameters:
+  EfsFileSystemId:
+    type: String
+    description: '(Required) EFS mount for the /sapmnt'
+    default: ''
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Create_directories"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo "Starting to create directories" | tee -a $SSM_LOG_FILE
+    - mkdir -p /usr/sap /sapmnt /upgrade
+    - echo "Return code $?"
+- action: "aws:runShellScript"
+  name: "Mount_disks"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - # Create mapping table for NVMe devices
+    - rm -f /tmp/diskmap
+    - for MYNVME in $(ls /dev/nvme*n1); do echo "$( nvme id-ctrl -v ${MYNVME} | grep xvd | awk '{ print $18 }' | sed -e 's/"//g' -e 's/\.*//g' ) ${MYNVME}" >> /tmp/diskmap; done
+    - if mountpoint -q /usr/sap
+    - then
+    -   echo "/usr/sap already mounted. Skipping..."
+    - else
+    -   # Create LVM group for /usr/sap
+    -   USRSAPDEVICE=$( grep xvdf /tmp/diskmap  | awk '{print $2}' )
+    -   if [ ! -z "$USRSAPDEVICE" ]
+    -   then
+    -     pvcreate $USRSAPDEVICE
+    -     vgcreate vg_usrsap $USRSAPDEVICE
+    -     lvcreate -l 100%FREE -n lv_usrsap vg_usrsap
+    -     mkfs.xfs /dev/vg_usrsap/lv_usrsap
+    -     echo "/dev/vg_usrsap/lv_usrsap /usr/sap xfs defaults 1 2" >> /etc/fstab
+    -   else
+    -     echo "Mapping of /usr/sap device failed. Review the script or device name"
+    -     exit 1
+    -   fi
+    - fi
+    - if [[ $(swapon -s) ]] 
+    - then
+    -   echo "Swap already exists. Skipping..."
+    - else    
+    -   # Create LVM group for swap
+    -   SWAPDEVICE=$( grep xvdg /tmp/diskmap  | awk '{print $2}' )
+    -   if [ ! -z "$SWAPDEVICE" ]
+    -   then
+    -     pvcreate $SWAPDEVICE
+    -     vgcreate vg_swap $SWAPDEVICE
+    -     lvcreate -l 100%FREE -n lv_swap vg_swap
+    -     mkswap /dev/vg_swap/lv_swap
+    -     echo "/dev/vg_swap/lv_swap swap swap defaults 0 0" >> /etc/fstab
+    -   else
+    -     echo "Mapping of swap device failed. Review the script or device name"
+    -     exit 1
+    -   fi
+    - fi
+    - # Check if already mounted
+    - if mountpoint -q /sapmnt
+    - then
+    -   echo "/sapmnt already mounted. Skipping..."
+    - else
+    -   EFS={{ EfsFileSystemId }}
+    -   if [ ! -z '$EFS' ]
+    -   then 
+    -     # Mount /sapmnt using EFS
+    -     echo "EFS mount point provided - $EFS. Will be used for /sapmnt" | tee -a $SSM_LOG_FILE
+    -     REGION=`curl -s http://169.254.169.254/latest/dynamic/instance-identity/document|grep region|awk -F\" '{print $4}'`
+    -     EFS_MP="${EFS}.efs.${REGION}.amazonaws.com:/ "
+    -     echo "${EFS_MP}  /sapmnt  nfs nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport  0 0"  >> /etc/fstab
+    -     mount /sapmnt | tee -a $SSM_LOG_FILE
+    -     sleep 15
+    -     FS_SAPMNT=$(df -h | grep /sapmnt | awk '{ print $NF }')
+    -     if [ -z "$FS_SAPMNT" ]
+    -     then
+    -       mount /sapmnt
+    -       sleep 15
+    -     fi
+    -     FS_SAPMNT=$(df -h | grep /sapmnt | awk '{ print $NF }')
+    -     if [ -z "$FS_SAPMNT" ]
+    -     then  
+    -        echo "Could not mount EFS. Exiting..." | tee -a $SSM_LOG_FILE
+    -        exit 1
+    -     fi
+    -   fi
+    - fi
+- action: "aws:runShellScript"
+  name: "Prepare_sap_trans"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo "Starting to create directories" | tee -a $SSM_LOG_FILE
+    - mkdir -p /sapmnt/trans
+    - echo "Return code $?"
+    - ln -s /sapmnt/trans /usr/sap/

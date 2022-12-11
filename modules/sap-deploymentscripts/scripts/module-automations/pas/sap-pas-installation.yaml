@@ -1,0 +1,218 @@
+---
+schemaVersion: '0.3'
+description: 'Setup the PAS on sap instance'
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  AutomationAssumeRole:
+    type: String
+    description: "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf. "
+    default: ''
+  InstanceId:
+    type: String
+    description: "(Required) The instance id to install PAS"
+    default: ''
+  InstallationMediaBucket:
+    type: String
+    description: "(Required) PAS media location"
+    default: '${InstallationMediaBucket}'
+  DbProductId:
+    type: String
+    description: '(Optional) Product id for db instance'
+    default: '${DbProductId}'
+  PasProductId:
+    type: String
+    description: '(Optional) Product id for PAS instance'
+    default: '${PasProductId}'
+  AscsInstanceId:
+    type: String
+    description: '(Required) The instance ID, where ASCS master is installed. Needed for /etc/hosts'
+    default: '${AscsInstanceId}'
+  DbInstanceId:
+    type: String
+    description: '(Required) The instance ID, where HANA DB is installed'
+    default: '${DbInstanceId}'
+  DnsPrivateZoneName:
+    type: String
+    description: "(Optional) DNS Zone name to specify FQDN in hosts"
+    default: '${DNSPrivateZoneName}'
+  CloudWatchLogGroupName:
+    type: String
+    description: "(Required) Cloud Watch log group for the log output"
+    default: '${CloudWatchLogGroupName}'
+mainSteps:
+- name: Get_master_password_from_ssm
+  action: 'aws:executeAwsApi'
+  inputs:
+    Service: ssm
+    Api: get_parameter
+    Name: '${MasterPasswordParameterName}'
+    WithDecryption: True
+  outputs:
+  - Name: MasterPassword
+    Selector: $.Parameter.Value
+    Type: String
+- name: Get_hostname
+  action: aws:executeAwsApi
+  inputs:
+    Service: ec2
+    Api: describe_tags
+    Filters:
+    - Name: 'key'
+      Values:
+      - 'Hostname'
+    - Name: 'resource-id'
+      Values:
+      - '{{ InstanceId }}'
+  outputs:
+  - Name: Hostname
+    Selector: $.Tags[0].Value
+    Type: String
+- name: Get_private_ip
+  action: 'aws:executeAwsApi'
+  inputs:
+    Service: ec2
+    Api: describe_instances
+    InstanceIds:
+      - '{{ InstanceId }}'
+  outputs:
+    - Name: PrivateIp
+      Selector: '$.Reservations[0].Instances[0].PrivateIpAddress'
+      Type: String
+- name: Add_to_ascs_hosts
+  action: 'aws:runCommand'
+  inputs:
+    DocumentName: ${AddToHostsDocumentName}
+    InstanceIds: 
+    - '{{ AscsInstanceId }}'
+    Parameters:
+      Hostname: '{{ Get_hostname.Hostname }}'
+      PrivateIp: '{{ Get_private_ip.PrivateIp }}'
+      PrivateZone: '${DNSPrivateZoneName}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: true
+- name: Get_Sid
+  action: aws:executeAwsApi
+  inputs:
+    Service: ec2
+    Api: describe_tags
+    Filters:
+    - Name: 'key'
+      Values:
+      - 'Sid'
+    - Name: 'resource-id'
+      Values:
+      - '{{ InstanceId }}'
+  outputs:
+  - Name: Sid
+    Selector: $.Tags[0].Value
+    Type: String
+- name: Get_db_hostname
+  action: 'aws:executeAwsApi'
+  inputs:
+    Service: ec2
+    Api: describe_tags
+    Filters:
+      - Name: key
+        Values:
+          - Hostname
+      - Name: resource-id
+        Values:
+          - '{{ DbInstanceId }}'
+  outputs:
+    - Name: DbHostname
+      Selector: '$.Tags[0].Value'
+      Type: String
+- name: Get_db_private_ip
+  action: 'aws:executeAwsApi'
+  inputs:
+    Service: ec2
+    Api: describe_instances
+    InstanceIds:
+      - '{{ DbInstanceId }}'
+  outputs:
+    - Name: DbPrivateIp
+      Selector: '$.Reservations[0].Instances[0].PrivateIpAddress'
+      Type: String
+- name: Add_db_to_hosts
+  action: 'aws:runCommand'
+  inputs:
+    DocumentName: ${AddToHostsDocumentName}
+    InstanceIds: 
+    - '{{ InstanceId }}'
+    Parameters:
+      Hostname: '{{ Get_db_hostname.DbHostname }}'
+      PrivateIp: '{{ Get_db_private_ip.DbPrivateIp }}'
+      PrivateZone: '${DNSPrivateZoneName}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: true
+- name: Get_ascs_hostname
+  action: aws:executeAwsApi
+  inputs:
+    Service: ec2
+    Api: describe_tags
+    Filters:
+    - Name: 'key'
+      Values:
+      - 'Hostname'
+    - Name: 'resource-id'
+      Values:
+      - '{{ AscsInstanceId }}'
+  outputs:
+  - Name: AscsHostname
+    Selector: $.Tags[0].Value
+    Type: String
+- name: Get_ascs_private_ip
+  action: aws:executeAwsApi
+  inputs:
+    Service: ec2
+    Api: describe_instances
+    InstanceIds:
+    - '{{ AscsInstanceId }}'
+  outputs:
+  - Name: AscsPrivateIp
+    Selector: $.Reservations[0].Instances[0].PrivateIpAddress
+    Type: String
+- name: Add_ascs_to_hosts
+  action: aws:runCommand
+  inputs: 
+    DocumentName: ${AddToHostsDocumentName}
+    InstanceIds:
+    - '{{ InstanceId }}'
+    Parameters:
+      Hostname: '{{ Get_ascs_hostname.AscsHostname }}'
+      PrivateIp: '{{ Get_ascs_private_ip.AscsPrivateIp }}'
+      PrivateZone: '${DNSPrivateZoneName}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: True
+- name: Download_Pas_software
+  action: aws:runCommand
+  inputs:
+    DocumentName: ${DownloadSoftwareDocumentName}
+    InstanceIds:
+    - '{{ InstanceId }}'
+    Parameters:
+      InstallationMediaBucket: '{{ InstallationMediaBucket }}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: True
+- name: Execute_installation
+  action: aws:runCommand
+  inputs:
+    DocumentName: ${ExecuteInstallationDocumentName}
+    InstanceIds:
+    - '{{ InstanceId }}'
+    Parameters:
+      MasterPassword: '{{ Get_master_password_from_ssm.MasterPassword }}'
+      DbProductId: '{{ DbProductId }}'
+      PasProductId: '{{ PasProductId }}'
+      Sid: '{{ Get_Sid.Sid }}'
+      Hostname: '{{ Get_hostname.Hostname }}'
+      DbHostname: '{{ Get_db_hostname.DbHostname }}'
+      AscsHostname: '{{ Get_ascs_hostname.AscsHostname }}'
+      DnsPrivateZoneName: '{{ DnsPrivateZoneName }}'
+    CloudWatchOutputConfig:
+      CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+      CloudWatchOutputEnabled: True

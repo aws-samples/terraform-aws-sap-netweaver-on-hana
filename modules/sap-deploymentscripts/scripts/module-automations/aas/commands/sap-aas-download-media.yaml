@@ -1,0 +1,58 @@
+---
+schemaVersion: "2.2"
+description: "Download Media"
+parameters:
+  InstallationMediaBucket:
+    type: String
+    description: "(Required) The bucket, where the installation files are stored"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Download_media"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - if [ ! -d "/sapmnt/software" ]
+    - then
+    -   mkdir /sapmnt/software | tee -a $SSM_LOG_FILE
+    - fi
+    - echo "Downloading required installation files from {{ InstallationMediaBucket }}..."
+    - aws s3 sync s3://{{InstallationMediaBucket}}/EXP_CD /sapmnt/software/EXP_CD --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ] 
+    - then
+    -   echo "EXP_CD Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -  echo "Could not download EXP_CD... Exiting"
+    -  exit 1
+    - fi
+    - aws s3 sync s3://{{InstallationMediaBucket}}/KERN_CD /sapmnt/software/KERN_CD --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ] 
+    - then
+    -   echo "KERN_CD Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -  echo "Could not download KERN_CD... Exiting"
+    -  exit 1
+    - fi
+    - aws s3 sync s3://{{InstallationMediaBucket}}/HDB_CLNTCD /sapmnt/software/HDB_CLNTCD --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ] 
+    - then
+    -   echo "HDB_CLNTCD Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -  echo "Could not download HDB_CLNTCD... Exiting"
+    -  exit 1
+    - fi
+    - aws s3 sync s3://{{InstallationMediaBucket}}/sapinst /sapmnt/software/sapinst --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ] 
+    - then
+    -   echo "sapinst Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -  echo "Could not download sapinst... Exiting"
+    -  exit 1
+    - fi
+    - aws s3 cp s3://{{InstallationMediaBucket}}/NW75Parameters/aas.params /sapmnt/software/ --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ] 
+    - then
+    -   echo "aas.params Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -  echo "Could not download aas.params... Exiting"
+    -  exit 1
+    - fi

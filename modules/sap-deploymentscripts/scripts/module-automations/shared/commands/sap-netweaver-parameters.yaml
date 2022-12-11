@@ -1,0 +1,40 @@
+---
+schemaVersion: "2.2"
+description: "Set Up Required OS parameters"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Set_up_parameters"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo "`date` Starting the OS parameters setup" | tee -a $SSM_LOG_FILE
+    - # Configuration according to SAP Note #2002167
+    - touch /etc/sysctl.d/sap.conf
+    - echo kernel.sem=1250 256000 100 1024 >> /etc/sysctl.d/sap.conf
+    - echo vm.max_map_count=2000000 >> /etc/sysctl.d/sap.conf
+    - sysctl --system | tee -a $SSM_LOG_FILE
+    - tuned --daemon | tee -a $SSM_LOG_FILE
+    - tuned-adm profile sap-netweaver | tee -a $SSM_LOG_FILE
+    - tuned-adm profile | grep "Current active profile " | tee -a $SSM_LOG_FILE
+    - yum install -y uuidd | tee -a $SSM_LOG_FILE
+    - chkconfig uuidd on | tee -a $SSM_LOG_FILE
+    - service uuidd start | tee -a $SSM_LOG_FILE
+- action: "aws:runShellScript"
+  name: "Set_up_ntp"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - cp /etc/ntp.conf /etc/ntp.conf.backup
+    - echo "server 0.pool.ntp.org" >> /etc/ntp.conf
+    - echo "server 1.pool.ntp.org" >> /etc/ntp.conf
+    - echo "server 2.pool.ntp.org" >> /etc/ntp.conf
+    - echo "server 3.pool.ntp.org" >> /etc/ntp.conf
+    - systemctl start ntpd
+    - echo "systemctl start ntpd" >> /etc/init.d/boot.local
+- action: "aws:runShellScript"
+  name: "Set_up_net"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - sed -i '/DHCLIENT_SET_HOSTNAME/ c\DHCLIENT_SET_HOSTNAME="no"' /etc/sysconfig/network/dhcp | tee -a $SSM_LOG_FILE
+    - service network restart | tee -a $SSM_LOG_FILE

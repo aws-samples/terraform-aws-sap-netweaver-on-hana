@@ -1,0 +1,46 @@
+---
+schemaVersion: "2.2"
+description: "Download Media"
+parameters:
+  InstallationMediaBucket:
+    type: String
+    description: "(Required) The bucket, where the installation files are stored"
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Download_media"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - if [ ! -d "/sapmnt/software" ]; then
+    -   mkdir /sapmnt/software | tee -a $SSM_LOG_FILE
+    - fi
+    - echo "Downloading required installation files from {{ InstallationMediaBucket }}..."
+    - aws s3 sync s3://{{InstallationMediaBucket}}/S4H1909 /sapmnt/software/S4H1909 --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ]; then
+    -   echo "S4H1909 Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -   echo "Could not download S4H1909... Exiting"
+    -   exit 1
+    - fi
+    - aws s3 sync s3://{{InstallationMediaBucket}}/SWPM-SUM /sapmnt/software/SWPM-SUM --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ]; then
+    -   echo "SWPM-SUM Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -   echo "Could not download SWPM-SUM... Exiting"
+    -   exit 1
+    - fi
+    - aws s3 sync s3://{{InstallationMediaBucket}}/utils /sapmnt/software/utils --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ]; then
+    -   echo "Utils / SAPCAR.EXE Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -   echo "Could not download Utils / SAPCAR.EXE... Exiting"
+    -   exit 1
+    - fi
+    - 
+    - aws s3 cp s3://{{InstallationMediaBucket}}/NW75Parameters/ascs.params /sapmnt/software/ --quiet | tee -a $SSM_LOG_FILE
+    - if [ $? = 0 ]; then
+    -   echo "ascs.params Downloaded Successfully..." | tee -a $SSM_LOG_FILE
+    - else
+    -   echo "Could not download ascs.params... Exiting"
+    -   exit 1
+    - fi

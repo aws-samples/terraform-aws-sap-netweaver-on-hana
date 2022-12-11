@@ -1,0 +1,101 @@
+---
+schemaVersion: "2.2"
+description: "Execute installation"
+parameters:
+  ProductId:
+    type: String
+    description: "(Required) The id of the product to be installed"
+    default: ''
+  Sid:
+    type: String
+    description: "(Required) The system id of SAP system"
+    default: ''
+  Hostname:
+    type: String
+    description: '(Required) The Hostname of the instance'
+    default: ''
+  MasterPassword:
+    type: String
+    description: '(Required) SAP NetWeaver Master Password'
+    default: ''
+  IniFile:
+    type: String
+    description: '(Optional) Path to INI file'
+    default: '/sapmnt/software/ascs.params'
+  DnsPrivateZoneName:
+    type: String
+    description: "(Optional) DNS Zone name to specify FQDN in hosts"
+    default: '${DNSPrivateZoneName}'
+mainSteps:
+- action: "aws:runShellScript"
+  name: "Prepare_ascs_ini"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - ASCS_INI_FILE={{ IniFile }}
+    - SID=`echo "{{Sid}}" | tr a-z A-Z`
+    - SAPSYSUID=1003
+    - SIDADMUID=1004
+    - SWTARGET=/sapmnt/software/S4H1909
+    - DOMAINNAME={{ DnsPrivateZoneName }}
+    - LHOSTNAME=`hostname`
+    - FQDN=$${LHOSTNAME}.$${DOMAINNAME}
+    - sed -i "s|default_scsVirtualHostname|$${LHOSTNAME}|g" $${ASCS_INI_FILE}
+    - sed -i "s|default_scsInstanceNumber|00|g" $${ASCS_INI_FILE}
+    - sed -i "s|default_ssmpass|{{ MasterPassword }}|g" $${ASCS_INI_FILE}
+    - sed -i "s|default_sid|$${SID}|g" $${ASCS_INI_FILE}
+    - sed -i "s|default_fqdn|$${DOMAINNAME}|g" $${ASCS_INI_FILE}
+    - sed -i "s|default_sapsysGID|$${SAPSYSUID}|g" $${ASCS_INI_FILE}
+    - sed -i "s|default_AdmUID|$${SIDADMUID}|g" $${ASCS_INI_FILE}
+    - sed -i "s|default_downloadBasket|$${SWTARGET}|g" $${ASCS_INI_FILE}
+    - echo '`date` Prepared the Ini File:...' | tee -a $SSM_LOG_FILE
+- action: "aws:runShellScript"
+  name: "Execute_installation"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - echo '`date` Starting the Installation process...' | tee -a $ 
+    - SYSTEMNUMBER=00
+    - SAPAliasName=`hostname`
+    - SWPMFILE=`find /sapmnt/software/SWPM-SUM/ -name SWPM*SAR`
+    - chmod 775 /sapmnt/software/utils/sapcar
+    - /sapmnt/software/utils/sapcar -xvf $SWPMFILE -R /sapmnt/software/SWPM
+    - chmod 755 /sapmnt/software/SWPM/sapinst
+    - cd /sapmnt/software/SWPM
+    - ./sapinst SAPINST_INPUT_PARAMETERS_URL=/sapmnt/software/ascs.params SAPINST_EXECUTE_PRODUCT_ID={{ProductId}} SAPINST_USE_HOSTNAME=$${SAPAliasName} SAPINST_SKIP_DIALOGS="true" SAPINST_START_GUISERVER=false | tee -a $SSM_LOG_FILE
+- action: "aws:runShellScript"
+  name: "Validate_Installation"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - sid=`echo {{ Sid }} | tr '[:upper:]' '[:lower:]'}`
+    - SID=`echo {{ Sid }} | tr '[:lower:]' '[:upper:]'}`
+    - HOSTNAME=`hostname`
+    - SIDADM=$${sid}adm
+    - su - $SIDADM -c "stopsap $HOSTNAME" | tee -a $SSM_LOG_FILE
+    - su - $SIDADM -c "startsap $HOSTNAME" | tee -a $SSM_LOG_FILE
+    - sleep 15
+    - _SAP_UP=$(netstat -an | grep 3200 | grep tcp | grep LISTEN | wc -l )
+    - echo "This is the value of SAP_UP - $_SAP_UP" | tee -a $SSM_LOG_FILE
+    - if [ "$_SAP_UP" -eq 1 ]
+    - then
+    -   echo "$(date) __ done installing ASCS." | tee -a $SSM_LOG_FILE
+    -   exit 0
+    - else 
+    -   echo "$(date) __ ASCS could not be installed successfully. Fix the issue and rerun the automation" | tee -a $SSM_LOG_FILE
+    -   exit 1
+    - fi
+- action: "aws:runShellScript"
+  name: "Save_services_file"
+  inputs:
+    runCommand:
+    - #!/bin/bash
+    - grep -i sap /etc/services > /sapmnt/services
+    - if [ -s /sapmnt/services ]
+    - then
+    -   echo "Services file copied to sapmnt" | tee -a $SSM_LOG_FILE
+    -   exit 0
+    - else
+    -   echo "Services file could not be copied" | tee -a $SSM_LOG_FILE
+    -   exit 1
+    - fi

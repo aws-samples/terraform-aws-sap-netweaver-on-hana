@@ -1,0 +1,116 @@
+description: Bootstrap all the SAP Netweaver instances with required parameters
+schemaVersion: '0.3'
+assumeRole: '{{ AutomationAssumeRole }}'
+parameters:
+  AutomationAssumeRole:
+    type: String
+    description: >-
+      (Optional) The ARN of the role that allows Automation to perform the
+      actions on your behalf. 
+    default: ''
+  InstanceId:
+    type: String
+    description: (Required) The instance id to install additional application server
+    default: ''
+  EfsFileSystemId:
+    type: String
+    description: (Required) The EFS file system id for /sapmnt folder
+    default: ${EfsFileSystemId}
+  DnsPrivateZoneName:
+    type: String
+    description: "(Optional) DNS Zone name to specify FQDN in hosts"
+    default: '${DNSPrivateZoneName}'
+  HostnameTagKey:
+    type: String
+    description: "(Required) The tag key where the hostname is stored"
+    default: 'Hostname'
+  CloudWatchLogGroupName:
+    type: String
+    description: (Required) Cloud Watch log group for the log output
+    default: ${CloudWatchLogGroupName}
+mainSteps:
+  - name: Prepare_logs
+    action: 'aws:runCommand'
+    inputs:
+      DocumentName: ${PrepareLogsDocumentName}
+      InstanceIds: 
+      - '{{ InstanceId }}'
+      CloudWatchOutputConfig:
+        CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+        CloudWatchOutputEnabled: true
+  - name: Get_hostname
+    action: aws:executeAwsApi
+    inputs:
+      Service: ec2
+      Api: describe_tags
+      Filters:
+      - Name: 'key'
+        Values:
+        - '{{ HostnameTagKey }}'
+      - Name: 'resource-id'
+        Values:
+        - '{{ InstanceId }}'
+    outputs:
+    - Name: Hostname
+      Selector: $.Tags[0].Value
+      Type: String
+  - name: Set_hostname
+    action: aws:runCommand
+    inputs: 
+      DocumentName: ${SetHostnameDocumentName}
+      InstanceIds: 
+      - '{{ InstanceId }}'
+      Parameters:
+        PrivateZone: '{{ DnsPrivateZoneName }}'
+        Hostname: '{{ Get_hostname.Hostname }}'
+      CloudWatchOutputConfig:
+        CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+        CloudWatchOutputEnabled: True
+  - name: Install_Packages
+    action: 'aws:runCommand'
+    inputs:
+      DocumentName: ${InstallPackagesDocumentName}
+      InstanceIds: 
+      - '{{ InstanceId }}'
+      CloudWatchOutputConfig:
+        CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+        CloudWatchOutputEnabled: true
+  - name: Set_OS_Parameters
+    action: 'aws:runCommand'
+    inputs:
+      DocumentName: ${SetParametersDocumentName}
+      InstanceIds: 
+      - '{{ InstanceId }}'
+      CloudWatchOutputConfig:
+        CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+        CloudWatchOutputEnabled: true
+  - name: Mount_Disks
+    action: 'aws:runCommand'
+    inputs:
+      DocumentName: ${MountDisksDocumentName}
+      InstanceIds: 
+      - '{{ InstanceId }}'
+      Parameters:
+        EfsFileSystemId: '{{ EfsFileSystemId }}'
+      CloudWatchOutputConfig:
+        CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+        CloudWatchOutputEnabled: true
+  - name: Install_Aws_Sap_Data_Provider
+    action: 'aws:runCommand'
+    isCritical: false
+    inputs:
+      DocumentName: ${InstallAwsDataProviderDocumentName}
+      InstanceIds: 
+      - '{{ InstanceId }}'
+      CloudWatchOutputConfig:
+        CloudWatchLogGroupName: '{{ CloudWatchLogGroupName }}'
+        CloudWatchOutputEnabled: true
+  - name: Reboot_instance
+    action: 'aws:executeAutomation'
+    maxAttempts: 3
+    timeoutSeconds: 1200
+    onFailure: Abort
+    inputs:
+      DocumentName: AWS-RestartEC2Instance
+      RuntimeParameters:
+        InstanceId: '{{ InstanceId }}'
