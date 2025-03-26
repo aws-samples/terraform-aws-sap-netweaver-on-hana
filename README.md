@@ -1,6 +1,4 @@
-# SAP NetWeaver on HANA Module
-
-## DEPRECATION WARNING
+# DEPRECATION WARNING
 
 This repository has been deprecated as of Mar 26th 2025. Find the new repository, instructions and code to be used on this link: https://github.com/aws-samples/aws-sap-terraform
 
